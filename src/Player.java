@@ -12,7 +12,7 @@ public class Player extends Actor implements KeyListener {
     /**
      * Default time between shots
      */
-    public static final int DEFAULT_SHOOT_INTERVAL = 1500;
+    public static final int DEFAULT_SHOOT_INTERVAL = 1000;
     public static final int NUM_FRAMES = 3;
     /**
      * http://www.spriters-resource.com/community/printthread.php?tid=19817
@@ -101,9 +101,9 @@ public class Player extends Actor implements KeyListener {
 
     @Override
     void draw(Graphics2D g) {
-        if (playerImage != null && position != null) {
+        if (playerImage != null) {
             BufferedImage frame = getCurrentFrame(playerImage);
-            if (doMove(g, frame)) {
+            if (doMove(g, frame) && position != null) {
                 drawImage(g, frame, position.getXPixels(),
                         position.getYPixels());
             }

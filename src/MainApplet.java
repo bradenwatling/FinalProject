@@ -62,12 +62,12 @@ public class MainApplet extends JApplet {
                 currentLevel.getWidth() - 1, 0);
         Tile enemyPositionThree = currentLevel.getTile(0,
                 currentLevel.getHeight() - 1);
-        enemies.add(new Enemy(enemyPositionOne, currentLevel, 100,
-                player, Enemy.EnemyType.GHOST));
-        enemies.add(new Enemy(enemyPositionTwo, currentLevel, 100,
-                player, Enemy.EnemyType.BAT));
-        enemies.add(new Enemy(enemyPositionThree, currentLevel, 100,
-                player, Enemy.EnemyType.GHOST));
+        enemies.add(new SimpleEnemy(enemyPositionOne, currentLevel, 100,
+                player));
+        enemies.add(new RandomEnemy(enemyPositionTwo, currentLevel, 100,
+                player));
+        enemies.add(new SearchEnemy(enemyPositionThree, currentLevel, 100,
+                player));
 
         currentLevel.start(new Timer());
         HUD.start(new Timer());
@@ -100,10 +100,10 @@ public class MainApplet extends JApplet {
                     + "player.png"));
             Projectile.projectileImage = ImageIO.read(new File(graphicsFolder
                     + "fireball.png"));
-            Enemy.ghostImage = ImageIO.read(new File(graphicsFolder
+            RandomEnemy.randomEnemyImage = ImageIO.read(new File(graphicsFolder
                     + "gengar.png"));
-            Enemy.batImage = ImageIO.read(new File(graphicsFolder + "bat.png"));
-            Enemy.dogImage = ImageIO.read(new File(graphicsFolder + "dog.png"));
+            SimpleEnemy.simpleEnemyImage = ImageIO.read(new File(graphicsFolder + "bat.png"));
+            SearchEnemy.searchEnemyImage = ImageIO.read(new File(graphicsFolder + "dog.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

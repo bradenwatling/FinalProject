@@ -62,6 +62,7 @@ public abstract class Actor {
             yMove = 0;
             return true;
         } else {
+            target = null;
             return false;
         }
     }
@@ -102,6 +103,8 @@ public abstract class Actor {
                 }
                 lastFrameTime = now;
             }
+            
+            checkDirection();
 
             if (moveLeft) {
                 yCurFrame = 1;

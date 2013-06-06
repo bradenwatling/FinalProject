@@ -421,9 +421,17 @@ public class Level {
 
         return path;
     }
-    
-    public boolean isAdjacent(Tile one, Tile two) {
-    	return true;
+
+    public boolean isAdjacent(Tile current, Tile other) {
+
+        boolean ret = false;
+
+        ret = current.getX() - 1 == other.getX() ? true : ret;
+        ret = current.getX() + 1 == other.getX() ? true : ret;
+        ret = current.getY() - 1 == other.getY() ? true : ret;
+        ret = current.getY() + 1 == other.getY() ? true : ret;
+        
+        return ret;
     }
 
     public Tile[] getAdjacent(Tile t) {

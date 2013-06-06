@@ -63,9 +63,9 @@ public class Projectile extends Actor {
 
     @Override
     void draw(Graphics2D g) {
-        if (projectileImage != null && position != null) {
+        if (projectileImage != null) {
             BufferedImage frame = getCurrentFrame(projectileImage);
-            if (frame != null && doMove(g, frame)) {
+            if (frame != null && doMove(g, frame) && position != null) {
                 drawImage(g, frame, position.getXPixels(),
                         position.getYPixels());
             }
