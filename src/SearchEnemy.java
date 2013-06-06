@@ -12,7 +12,7 @@ import java.awt.image.BufferedImage;
 public class SearchEnemy extends Enemy {
 
     public static final double SPEED = 2.0;
-    public static final int DAMAGE = 7, RANDOM_CHOICE = 0;
+    public static final int DAMAGE = 4, RANDOM_CHOICE = 0;
     public static BufferedImage searchEnemyImage;
 
     public SearchEnemy(Tile position, Level currentLevel, int health, Player player) {

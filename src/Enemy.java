@@ -14,10 +14,8 @@ public abstract class Enemy extends Actor {
      * http://www.spriters-resource.com/fullview/26795/
      * http://www.spriters-resource.com/fullview/26794/
      */
-    // batImage, dogImage;
     Player player;
     BufferedImage drawImage;
-    //EnemyType enemyType;
     Tile lastPlayerPosition;
     ArrayList<Tile> pathToPlayer;
     /**
@@ -27,9 +25,6 @@ public abstract class Enemy extends Actor {
     int randomChoice;
     int damage;
 
-    //public enum EnemyType {
-    //GHOST, BAT, DOG,
-    //}
     public Enemy(Tile position, Level currentLevel, int health,
             Player player) {
         super(position, currentLevel, health, NUM_FRAMES, 15);
@@ -56,13 +51,15 @@ public abstract class Enemy extends Actor {
 
             updatePath();
 
+            lastPlayerPosition = curPlayerPosition;
+
             long now = System.currentTimeMillis();
             if (now - timeSinceRetarget > DOG_RETARGET_TIME) {
                 if (chooseRandom) {
                     target = getRandomAdjacent();
                     if (target != null) {
                         pathToPlayer = currentLevel.getPath(target,
-                                player.getPosition());
+                                curPlayerPosition);
                     }
                 } else {
                     if (!position.equals(curPlayerPosition) && pathToPlayer != null
@@ -84,10 +81,7 @@ public abstract class Enemy extends Actor {
     }
 
     protected void updatePath() {
-        Tile curPlayerPosition = player.getPosition();
-
-        if (lastPlayerPosition == null || !lastPlayerPosition.equals(curPlayerPosition)) {
-            lastPlayerPosition = curPlayerPosition;
+        if (lastPlayerPosition == null || !lastPlayerPosition.equals(player.getPosition())) {
             if (pathToPlayer != null) {
                 pathToPlayer.clear();
             }
@@ -100,7 +94,7 @@ public abstract class Enemy extends Actor {
         int direction = (int) (Math.random() * 4);
         direction = direction >= 4 ? 3 : direction;
 
-        Tile ret = null;
+        Tile ret;
 
         switch (direction) {
             case 0:
@@ -146,9 +140,7 @@ public abstract class Enemy extends Actor {
         int x = position.getXPixels() + xMove + Tile.TILE_WIDTH / 2;
         int y = position.getYPixels() + yMove + Tile.TILE_HEIGHT / 2;
 
-        float smallRadius = lightRadius * 1.5f, bigRadius = lightRadius * 2;
-
-        /*
+        /*float smallRadius = lightRadius * 1.5f, bigRadius = lightRadius * 2;
          * if (moveLeft) { return new Area(new Ellipse2D.Float(x - bigRadius, y
          * - smallRadius / 2, bigRadius, smallRadius)); } else if (moveRight) {
          * return new Area(new Ellipse2D.Float(x, y - smallRadius / 2,
