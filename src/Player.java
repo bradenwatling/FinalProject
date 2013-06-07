@@ -141,8 +141,8 @@ public class Player extends Actor implements KeyListener {
     public void keyReleased(KeyEvent e) {
         char c = Character.toLowerCase(e.getKeyChar());
 
-        if (keys.contains(e.getKeyChar())) {
-            keys.remove(keys.indexOf(e.getKeyChar()));
+        if (keys.contains(c)) {
+            keys.remove(keys.indexOf(c));
         }
     }
 }
