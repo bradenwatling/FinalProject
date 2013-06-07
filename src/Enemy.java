@@ -8,7 +8,6 @@ import java.util.ArrayList;
 public abstract class Enemy extends Actor {
 
     public static final int NUM_FRAMES = 2;
-    public static final int DOG_RETARGET_TIME = 500;
     /**
      * http://www.spriters-resource.com/ds/pokeheartgoldsoulsilver/sheet/26794
      * http://www.spriters-resource.com/fullview/26795/
@@ -24,9 +23,9 @@ public abstract class Enemy extends Actor {
      */
     int randomChoice;
     int damage;
+    int retargetTime;
 
-    public Enemy(Tile position, Level currentLevel, int health,
-            Player player) {
+    public Enemy(Tile position, Level currentLevel, int health, Player player) {
         super(position, currentLevel, health, NUM_FRAMES, 15);
 
         this.player = player;
@@ -49,12 +48,19 @@ public abstract class Enemy extends Actor {
         if (animationComplete) {
             chooseRandom = Math.random() * 10 < randomChoice;
 
-            updatePath();
+            long now = System.currentTimeMillis();
+            if (updatePath()) {
+                if (pathToPlayer != null) {
+                    pathToPlayer.clear();
+                }
+                pathToPlayer = currentLevel.getPath(position,
+                        player.getPosition());
 
+                timeSinceRetarget = now;
+            }
             lastPlayerPosition = curPlayerPosition;
 
-            long now = System.currentTimeMillis();
-            if (now - timeSinceRetarget > DOG_RETARGET_TIME) {
+            if (now - timeSinceRetarget > retargetTime) {
                 if (chooseRandom) {
                     target = getRandomAdjacent();
                     if (target != null) {
@@ -62,8 +68,8 @@ public abstract class Enemy extends Actor {
                                 curPlayerPosition);
                     }
                 } else {
-                    if (!position.equals(curPlayerPosition) && pathToPlayer != null
-                            && pathToPlayer.size() > 0) {
+                    if (!position.equals(curPlayerPosition)
+                            && pathToPlayer != null && pathToPlayer.size() > 0) {
 
                         target = pathToPlayer.get(0);
                         pathToPlayer.remove(0);
@@ -80,14 +86,9 @@ public abstract class Enemy extends Actor {
         }
     }
 
-    protected void updatePath() {
-        if (lastPlayerPosition == null || !lastPlayerPosition.equals(player.getPosition())) {
-            if (pathToPlayer != null) {
-                pathToPlayer.clear();
-            }
-            pathToPlayer = currentLevel.getPath(position,
-                    player.getPosition());
-        }
+    protected boolean updatePath() {
+        return lastPlayerPosition == null
+                || !lastPlayerPosition.equals(player.getPosition());
     }
 
     private Tile getRandomAdjacent() {
@@ -125,14 +126,12 @@ public abstract class Enemy extends Actor {
             }
         }
 
-        /*if (pathToPlayer != null) {
-         g.setColor(new Color(255, 0, 0, 50));
-         for (int i = 0; i < pathToPlayer.size(); i++) {
-         Tile t = pathToPlayer.get(i);
-         g.fillRect(t.getXPixels(), t.getYPixels(), Tile.TILE_WIDTH,
-         Tile.TILE_HEIGHT);
-         }
-         }*/
+        /*
+         * if (pathToPlayer != null) { g.setColor(new Color(255, 0, 0, 50)); for
+         * (int i = 0; i < pathToPlayer.size(); i++) { Tile t =
+         * pathToPlayer.get(i); g.fillRect(t.getXPixels(), t.getYPixels(),
+         * Tile.TILE_WIDTH, Tile.TILE_HEIGHT); } }
+         */
     }
 
     @Override
@@ -140,7 +139,8 @@ public abstract class Enemy extends Actor {
         int x = position.getXPixels() + xMove + Tile.TILE_WIDTH / 2;
         int y = position.getYPixels() + yMove + Tile.TILE_HEIGHT / 2;
 
-        /*float smallRadius = lightRadius * 1.5f, bigRadius = lightRadius * 2;
+        /*
+         * float smallRadius = lightRadius * 1.5f, bigRadius = lightRadius * 2;
          * if (moveLeft) { return new Area(new Ellipse2D.Float(x - bigRadius, y
          * - smallRadius / 2, bigRadius, smallRadius)); } else if (moveRight) {
          * return new Area(new Ellipse2D.Float(x, y - smallRadius / 2,

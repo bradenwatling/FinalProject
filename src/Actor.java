@@ -119,7 +119,9 @@ public abstract class Actor {
     }
 
     protected BufferedImage getCurrentFrame(BufferedImage image) {
-        return image.getSubimage(xCurFrame * Tile.TILE_WIDTH, yCurFrame * Tile.TILE_HEIGHT, Tile.TILE_WIDTH, Tile.TILE_HEIGHT);
+        int frameWidth = image.getWidth() / numFrames;
+        int frameHeight = image.getHeight() / 4;
+        return image.getSubimage(xCurFrame * frameWidth, yCurFrame * frameHeight, frameWidth, frameHeight);
     }
 
     protected boolean doMove(Graphics2D g, BufferedImage image) {

@@ -6,7 +6,6 @@ import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import javax.swing.JPanel;
 
 public class ContentPanel extends JPanel {
@@ -35,20 +34,20 @@ public class ContentPanel extends JPanel {
                     if (enemy.getPosition().equals(player.position)) {
                         player.doDamage(enemy.getDamageAmount());
                     }
-                    
+
                     for (int a = 0; a < projectiles.size(); a++) {
                         Projectile projectile = projectiles.get(a);
-                        
-                        if(projectile.getPosition().equals(enemy.position) || (projectile.getTarget() != null && projectile.getTarget().equals(enemy.position))) {
+
+                        if (projectile.getPosition().equals(enemy.position) || (projectile.getTarget() != null && projectile.getTarget().equals(enemy.position))) {
                             //If the projectile hasn't already damaged an enemy
-                        	if(!projectile.getDestroyProjectile()) {
-                            	enemy.doDamage(Projectile.DAMAGE_TO_ENEMY);
+                            if (!projectile.getDestroyProjectile()) {
+                                enemy.doDamage(Projectile.DAMAGE_TO_ENEMY);
                                 projectile.destroyProjectile();
                             }
                         }
                     }
-                    
-                    if(enemy.isDead()) {
+
+                    if (enemy.isDead()) {
                         enemies.remove(enemy);
                     }
                 }
@@ -86,14 +85,9 @@ public class ContentPanel extends JPanel {
         if (currentTask != null) {
             currentTask.cancel();
         }
+
         currentTask = new Task();
         timer.scheduleAtFixedRate(currentTask, 0, 1000 / MainApplet.FPS);
-    }
-
-    public void cancel() {
-        if (currentTask != null) {
-            currentTask.cancel();
-        }
     }
 
     public void paintComponent(Graphics g) {
@@ -147,7 +141,6 @@ public class ContentPanel extends JPanel {
         if (currentLevel == null || player == null) {
             return;
         }
-
 
         Area currentLightArea = new Area();
         Area tempLightArea = new Area();

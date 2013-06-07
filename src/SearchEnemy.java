@@ -12,7 +12,7 @@ import java.awt.image.BufferedImage;
 public class SearchEnemy extends Enemy {
 
     public static final double SPEED = 2.0;
-    public static final int DAMAGE = 4, RANDOM_CHOICE = 0;
+    public static final int DAMAGE = 4, RANDOM_CHOICE = 0, RETARGET_TIME = 750;
     public static BufferedImage searchEnemyImage;
 
     public SearchEnemy(Tile position, Level currentLevel, int health, Player player) {
@@ -22,14 +22,10 @@ public class SearchEnemy extends Enemy {
         this.speed = SPEED;
         this.damage = DAMAGE;
         this.randomChoice = RANDOM_CHOICE;
+        this.retargetTime = RETARGET_TIME;
     }
 
-    protected void updatePath() {
-        if (pathToPlayer == null || pathToPlayer.isEmpty()) {
-            pathToPlayer = currentLevel.getPath(position,
-                    player.getPosition());
-            long now = System.currentTimeMillis();
-            timeSinceRetarget = now;
-        }
+    protected boolean updatePath() {
+        return pathToPlayer == null || pathToPlayer.isEmpty();
     }
 }

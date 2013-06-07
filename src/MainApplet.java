@@ -20,18 +20,7 @@ public class MainApplet extends JApplet {
     ArrayList<Enemy> enemies;
     ArrayList<Projectile> projectiles;
     int score;
-
-    public void keyTyped(KeyEvent e) {
-    }
-
-    public void keyPressed(KeyEvent e) {
-        player.keyPressed(e);
-    }
-
-    public void keyReleased(KeyEvent e) {
-        player.keyReleased(e);
-    }
-
+    
     public void createNewLevel() {
         // Can't make a new level without a content panel and a player
         if (content == null || player == null) {
@@ -40,7 +29,10 @@ public class MainApplet extends JApplet {
         projectiles.clear();
         enemies.clear();
 
-        timer.cancel();
+        if(timer != null) {
+        	timer.cancel();
+        }
+        
         timer = new Timer();
 
         // Difficulty between 1 and 4
@@ -69,9 +61,9 @@ public class MainApplet extends JApplet {
         enemies.add(new SearchEnemy(enemyPositionThree, currentLevel, 100,
                 player));
 
-        currentLevel.start(new Timer());
-        HUD.start(new Timer());
-        content.start(new Timer());
+        currentLevel.start(timer);
+        HUD.start(timer);
+        content.start(timer);
     }
 
     class LevelGeneratorListener implements ActionListener {
@@ -110,8 +102,6 @@ public class MainApplet extends JApplet {
 
         setSize(1000, 768);
 
-        timer = new Timer();
-
         enemies = new ArrayList<Enemy>();
         projectiles = new ArrayList<Projectile>();
         player = new Player(null, null, projectiles, 100);
@@ -126,10 +116,10 @@ public class MainApplet extends JApplet {
         HUD = new HUDPanel(player, enemies);
         content = new ContentPanel(currentLevel, player, enemies, projectiles);
 
-        JButton mapGenerator = new JButton("Generate");
+        Button mapGenerator = new Button("Generate");
         mapGenerator.addActionListener(new LevelGeneratorListener());
 
-        JButton lightSwitch = new JButton("Toggle");
+        Button lightSwitch = new Button("Toggle");
         lightSwitch.addActionListener(new LightSwitchListener());
 
         HUD.setBorder(new LineBorder(Color.RED));

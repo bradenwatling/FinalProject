@@ -5,7 +5,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -40,7 +39,7 @@ public class Level {
                         currentLightArea = null;
                     }
                 } else {
-                    cancel();
+                    //cancel();
                 }
             }
         }
@@ -91,17 +90,8 @@ public class Level {
     }
 
     public void start(Timer timer) {
-        if (currentTask != null) {
-            currentTask.cancel();
-        }
         currentTask = new Task();
         timer.scheduleAtFixedRate(currentTask, 0, 1000 / MainApplet.FPS);
-    }
-
-    public void cancel() {
-        if (currentTask != null) {
-            currentTask.cancel();
-        }
     }
 
     private boolean makeTile(int x, int y) {
@@ -349,9 +339,11 @@ public class Level {
         ArrayList<PathTile> openList = new ArrayList<PathTile>();
         ArrayList<PathTile> closedList = new ArrayList<PathTile>();
 
-        //Note that although these lists are of PathTiles, contains(Tile) can be
-        //used because the definition for a PathTile == Tile is defined in Tile's
-        //equals(Object o) method
+        // Note that although these lists are of PathTiles, contains(Tile) can
+        // be
+        // used because the definition for a PathTile == Tile is defined in
+        // Tile's
+        // equals(Object o) method
 
         boolean targetFound = false;
         PathTile curTile = new PathTile(null, current, 0);
@@ -390,16 +382,18 @@ public class Level {
                         int h = Math.abs(target.getX() - identicalTile.getX())
                                 + Math.abs(target.getY() - identicalTile.getY());
                         if (curTile.getG() < identical.getG()) {
-                            openList.set(indenticalIndex, new PathTile(curTile, identicalTile, h));
+                            openList.set(indenticalIndex, new PathTile(curTile,
+                                    identicalTile, h));
                         }
                     }
                 }
             }
 
-            //If weve exhausted all of the tiles that can be reached from the starting tile,
+            // If weve exhausted all of the tiles that can be reached from the
+            // starting tile,
             // but still havent found the target
             if (openList.isEmpty() && !closedList.contains(target)) {
-                //Then the target is unreachable
+                // Then the target is unreachable
                 return null;
             }
         }
@@ -430,7 +424,7 @@ public class Level {
         ret = current.getX() + 1 == other.getX() ? true : ret;
         ret = current.getY() - 1 == other.getY() ? true : ret;
         ret = current.getY() + 1 == other.getY() ? true : ret;
-        
+
         return ret;
     }
 

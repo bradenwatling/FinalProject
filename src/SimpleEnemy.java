@@ -13,7 +13,7 @@ import java.awt.image.BufferedImage;
 public class SimpleEnemy extends Enemy {
     
     public static final double SPEED = 0.75;
-    public static final int DAMAGE = 6, RANDOM_CHOICE = 0;
+    public static final int DAMAGE = 6, RANDOM_CHOICE = 0, RETARGET_TIME = 0;
     
     public static BufferedImage simpleEnemyImage;
     
@@ -24,5 +24,6 @@ public class SimpleEnemy extends Enemy {
         this.speed = SPEED;
         this.damage = DAMAGE;
         this.randomChoice = RANDOM_CHOICE;
+        this.retargetTime = RETARGET_TIME;
     }
 }
