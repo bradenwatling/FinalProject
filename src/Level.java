@@ -13,6 +13,8 @@ public class Level {
     public static final int MIN_WIDTH = 20, MAX_WIDTH = 30, HEIGHT = 20;
     public static final Color LIGHT_COLOR = new Color(255, 255, 200, 150);
     public static boolean LIGHT_ENABLED = true;
+    public static final int MAX_ENEMIES = 4;
+    MainApplet mainApplet;
     Tile[][] map;
     int width, height;
     double difficulty;
@@ -32,14 +34,17 @@ public class Level {
         @Override
         public void run() {
             if (currentLightArea != null) {
-                if (!litArea.contains(new Rectangle(width * Tile.TILE_WIDTH,
-                        height * Tile.TILE_HEIGHT))) {
+                Rectangle screen = new Rectangle(width * Tile.TILE_WIDTH,
+                        height * Tile.TILE_HEIGHT);
+                if (!litArea.contains(screen)) {
                     if (!litArea.contains(currentLightArea.getBounds2D())) {
                         litArea.add(currentLightArea);
                         currentLightArea = null;
                     }
                 } else {
-                    //cancel();
+                    cancel();
+                    //Win
+                    mainApplet.endLevel(true);
                 }
             }
         }
@@ -51,7 +56,8 @@ public class Level {
      * @param height
      * @param difficulty Difficulty of the level. Can range from 1-4
      */
-    Level(int width, int height, double difficulty) {
+    Level(MainApplet mainApplet, int width, int height, double difficulty) {
+        this.mainApplet = mainApplet;
         this.width = width;
         this.height = height;
 
@@ -89,9 +95,42 @@ public class Level {
         }
     }
 
-    public void start(Timer timer) {
+    public void addEnemies(int numSimple, int numSearch, int numRandom, ArrayList<Enemy> enemies, Player player) {
+        int totalEnemies = numSimple + numSearch + numRandom;
+
+        for (int i = 0; i < totalEnemies && i < MAX_ENEMIES; i++) {
+            Tile t = null;
+            while (t == null || t.getIsWall()) {
+                t = getTile((int) (Math.random() * (width - 1)), (int) (Math.random() * (height - 1)));
+                if (getPath(t, player.position) == null) {
+                    t = null;
+                }
+            }
+
+            Enemy newEnemy = null;
+
+            if (numSimple > 0) {
+                newEnemy = new SimpleEnemy(t, this, player);
+                numSimple--;
+            } else if (numSearch > 0) {
+                newEnemy = new SearchEnemy(t, this, player);
+                numSearch--;
+            } else if (numRandom > 0) {
+                newEnemy = new RandomEnemy(t, this, player);
+                numRandom--;
+            }
+
+            if (newEnemy != null) {
+                enemies.add(newEnemy);
+            }
+        }
+    }
+
+    public void startThread(Timer timer) {
         currentTask = new Task();
-        timer.scheduleAtFixedRate(currentTask, 0, 1000 / MainApplet.FPS);
+        //Make the frequency of the light thread half that of the other threads
+        //to keep it from being laggy
+        timer.scheduleAtFixedRate(currentTask, 0, 2 * 1000 / MainApplet.FPS);
     }
 
     private boolean makeTile(int x, int y) {
@@ -340,9 +379,7 @@ public class Level {
         ArrayList<PathTile> closedList = new ArrayList<PathTile>();
 
         // Note that although these lists are of PathTiles, contains(Tile) can
-        // be
-        // used because the definition for a PathTile == Tile is defined in
-        // Tile's
+        // be used because the definition for a PathTile == Tile is defined in Tile's
         // equals(Object o) method
 
         boolean targetFound = false;

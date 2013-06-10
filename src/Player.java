@@ -27,8 +27,9 @@ public class Player extends Actor implements KeyListener {
 
     public Player(Tile position, Level currentLevel,
             ArrayList<Projectile> projectiles, int health) {
-        super(position, currentLevel, health, NUM_FRAMES, 15);
+        super(position, currentLevel, NUM_FRAMES, 15);
         this.projectiles = projectiles;
+        this.health = health;
         keys = new ArrayList<Character>();
         shootInterval = DEFAULT_SHOOT_INTERVAL;
         lastProjectileTime = 0;
@@ -124,7 +125,8 @@ public class Player extends Actor implements KeyListener {
 
     public void reset(Level currentLevel, Tile position) {
         super.reset(currentLevel, position);
-
+        
+        health = 1000;
         keys.clear();
     }
 

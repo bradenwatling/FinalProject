@@ -6,61 +6,75 @@ import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 
 public class ContentPanel extends JPanel {
 
+    public static final int END_LEVEL_DELAY = 1000;
+    private MainApplet mainApplet;
     private Level currentLevel;
     private Player player;
     private ArrayList<Enemy> enemies;
     private ArrayList<Projectile> projectiles;
     private Task currentTask;
+    private boolean requestStart;
 
     class Task extends TimerTask {
 
         @Override
         public void run() {
-            requestFocus();
+            if (requestStart) {
+                requestFocus();
 
-            if (player != null) {
-                player.update();
-            }
+                if (player != null) {
+                    player.update();
 
-            for (int i = 0; i < enemies.size(); i++) {
-                Enemy enemy = enemies.get(i);
-                if (enemy != null) {
-                    enemy.update();
-
-                    if (enemy.getPosition().equals(player.position)) {
-                        player.doDamage(enemy.getDamageAmount());
+                    if (player.getHealth() <= 0) {
+                        mainApplet.endLevel(false);
                     }
 
-                    for (int a = 0; a < projectiles.size(); a++) {
-                        Projectile projectile = projectiles.get(a);
+                    for (int i = 0; i < enemies.size(); i++) {
+                        Enemy enemy = enemies.get(i);
+                        if (enemy != null) {
+                            enemy.update();
 
-                        if (projectile.getPosition().equals(enemy.position) || (projectile.getTarget() != null && projectile.getTarget().equals(enemy.position))) {
-                            //If the projectile hasn't already damaged an enemy
-                            if (!projectile.getDestroyProjectile()) {
-                                enemy.doDamage(Projectile.DAMAGE_TO_ENEMY);
-                                projectile.destroyProjectile();
+                            Tile enemyPosition = enemy.getPosition();
+                            
+                            if (enemyPosition != null) {
+                                if (enemyPosition.equals(player.position)) {
+                                    player.doDamage(enemy.getDamageAmount());
+                                }
+                            }
+
+                            for (int a = 0; a < projectiles.size(); a++) {
+                                Projectile projectile = projectiles.get(a);
+
+                                if (projectile.getPosition().equals(enemyPosition) || (projectile.getTarget() != null && projectile.getTarget().equals(enemyPosition))) {
+                                    //If the projectile hasn't already damaged an enemy
+                                    if (!projectile.getDestroyProjectile()) {
+                                        enemy.doDamage(Projectile.DAMAGE_TO_ENEMY);
+                                        projectile.destroyProjectile();
+                                    }
+                                }
+                            }
+
+                            if (enemy.isDead()) {
+                                enemies.remove(enemy);
                             }
                         }
                     }
-
-                    if (enemy.isDead()) {
-                        enemies.remove(enemy);
-                    }
                 }
-            }
 
-            for (int i = 0; i < projectiles.size(); i++) {
-                Projectile projectile = projectiles.get(i);
-                if (projectile != null) {
-                    projectile.update();
+                for (int i = 0; i < projectiles.size(); i++) {
+                    Projectile projectile = projectiles.get(i);
+                    if (projectile != null) {
+                        projectile.update();
 
-                    if (projectile.getDestroyProjectile()) {
-                        projectiles.remove(i--);
-                        continue;
+                        if (projectile.getDestroyProjectile()) {
+                            projectiles.remove(i--);
+                            continue;
+                        }
                     }
                 }
             }
@@ -71,8 +85,9 @@ public class ContentPanel extends JPanel {
         }
     }
 
-    public ContentPanel(Level currentLevel, Player player,
+    public ContentPanel(MainApplet mainApplet, Level currentLevel, Player player,
             ArrayList<Enemy> enemies, ArrayList<Projectile> projectiles) {
+        this.mainApplet = mainApplet;
         this.currentLevel = currentLevel;
         this.player = player;
         this.enemies = enemies;
@@ -81,13 +96,29 @@ public class ContentPanel extends JPanel {
         addKeyListener(player);
     }
 
-    public void start(Timer timer) {
+    public void doEndLevel() {
+        try {
+            Thread.sleep(END_LEVEL_DELAY);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ContentPanel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+    }
+
+    public void startThread(Timer timer) {
         if (currentTask != null) {
             currentTask.cancel();
         }
 
         currentTask = new Task();
         timer.scheduleAtFixedRate(currentTask, 0, 1000 / MainApplet.FPS);
+    }
+
+    public void start() {
+        requestStart = true;
+    }
+
+    public void stop() {
+        requestStart = false;
     }
 
     public void paintComponent(Graphics g) {
@@ -145,7 +176,9 @@ public class ContentPanel extends JPanel {
         Area currentLightArea = new Area();
         Area tempLightArea = new Area();
 
-        currentLightArea.add(player.getLight());
+        if (player != null) {
+            currentLightArea.add(player.getLight());
+        }
 
         for (int i = 0; i < enemies.size(); i++) {
             Enemy enemy = enemies.get(i);

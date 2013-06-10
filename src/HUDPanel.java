@@ -25,7 +25,7 @@ public class HUDPanel extends JPanel {
         this.enemies = enemies;
     }
 
-    public void start(Timer timer) {
+    public void startThread(Timer timer) {
         if (currentTask != null) {
             currentTask.cancel();
         }
@@ -42,9 +42,16 @@ public class HUDPanel extends JPanel {
         int x = 3, y = 3;
 
         drawHealthBar(g2d, x, y, player.getHealth());
-        y += HEALTH_HEIGHT + 3;
+        x = getWidth() - HEALTH_WIDTH - 3;
 
-        for (int i = 0; i < enemies.size(); i++) {
+        //This represents the number of enemy health bars we are going to draw
+        int numDrawEnemy = enemies.size();
+        //Limit it to the max number of enemies
+        if (numDrawEnemy > Level.MAX_ENEMIES) {
+            numDrawEnemy = Level.MAX_ENEMIES;
+        }
+
+        for (int i = 0; i < numDrawEnemy; i++) {
             Enemy enemy = enemies.get(i);
             drawHealthBar(g2d, x, y, enemy.getHealth());
             y += HEALTH_HEIGHT + 3;
@@ -52,9 +59,24 @@ public class HUDPanel extends JPanel {
     }
 
     private void drawHealthBar(Graphics2D g, int x, int y, int health) {
+        
+        int healthWidth = health * HEALTH_WIDTH / Actor.MAX_HEALTH;
+        if(health < 0) {
+            healthWidth = 0;
+        } else if(health > Actor.MAX_HEALTH) {
+            healthWidth = HEALTH_WIDTH;
+        }
+        
         g.setColor(new Color(255, 0, 0));
         g.fillRoundRect(x, y, HEALTH_WIDTH, HEALTH_HEIGHT, 10, 10);
+
         g.setColor(new Color(0, 175, 0));
-        g.fillRoundRect(x, y, health * HEALTH_WIDTH / Actor.MAX_HEALTH, HEALTH_HEIGHT, 10, 10);
+        g.fillRoundRect(x, y, healthWidth, HEALTH_HEIGHT, 10, 10);
+
+        String healthString = health + "/" + Actor.MAX_HEALTH;
+        FontMetrics metrics = g.getFontMetrics(g.getFont());
+
+        g.setColor(Color.BLACK);
+        g.drawString(healthString, x + HEALTH_WIDTH / 2 - metrics.stringWidth(healthString) / 2, y + HEALTH_HEIGHT / 2 + metrics.getHeight() / 2 - 3);
     }
 }

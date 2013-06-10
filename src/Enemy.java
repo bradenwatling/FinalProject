@@ -25,8 +25,8 @@ public abstract class Enemy extends Actor {
     int damage;
     int retargetTime;
 
-    public Enemy(Tile position, Level currentLevel, int health, Player player) {
-        super(position, currentLevel, health, NUM_FRAMES, 15);
+    public Enemy(Tile position, Level currentLevel, Player player) {
+        super(position, currentLevel, NUM_FRAMES, 15);
 
         this.player = player;
 

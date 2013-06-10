@@ -23,7 +23,8 @@ public class Projectile extends Actor {
     private boolean destroyProjectile;
 
     public Projectile(Tile position, Tile target, Level currentLevel) {
-        super(position, currentLevel, 0, NUM_FRAMES, 50);
+        super(position, currentLevel, NUM_FRAMES, 50);
+        this.health = 0;
         this.target = target;
         destroyProjectile = false;
         moveToTarget();

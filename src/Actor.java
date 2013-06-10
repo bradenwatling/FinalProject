@@ -22,16 +22,10 @@ public abstract class Actor {
     protected int xDefaultFrame, yDefaultFrame;
     protected boolean moveLeft, moveRight, moveUp, moveDown;
 
-    public Actor(Tile position, Level currentLevel, int health, int numFrames, int FPS) {
+    public Actor(Tile position, Level currentLevel, int numFrames, int FPS) {
         this.position = position;
         this.currentLevel = currentLevel;
-        if(health < 0) {
-            //You cant have less than 0 health
-            health = 0;
-        } else if(health > MAX_HEALTH) {
-            health = MAX_HEALTH;
-        }
-        this.health = health;
+        this.health = MAX_HEALTH;
         this.numFrames = numFrames;
         this.FPS = FPS;
         this.animationComplete = true;
