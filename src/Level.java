@@ -13,7 +13,7 @@ public class Level {
     public static final int MIN_WIDTH = 20, MAX_WIDTH = 30, HEIGHT = 20;
     public static final Color LIGHT_COLOR = new Color(255, 255, 200, 150);
     public static boolean LIGHT_ENABLED = true;
-    public static final int MAX_ENEMIES = 4;
+    public static final int MAX_DIFFICULTY = 4, MAX_ENEMIES = 4;
     MainApplet mainApplet;
     Tile[][] map;
     int width, height;
@@ -54,7 +54,7 @@ public class Level {
      *
      * @param width
      * @param height
-     * @param difficulty Difficulty of the level. Can range from 1-4
+     * @param difficulty Difficulty of the level. Can range from 1-MAX_DIFFICULTY
      */
     Level(MainApplet mainApplet, int width, int height, double difficulty) {
         this.mainApplet = mainApplet;
@@ -63,8 +63,8 @@ public class Level {
 
         if (difficulty < 1.0) {
             difficulty = 1.0;
-        } else if (difficulty > 4.0) {
-            difficulty = 4.0;
+        } else if (difficulty > MAX_DIFFICULTY) {
+            difficulty = MAX_DIFFICULTY;
         }
         this.difficulty = difficulty;
 
@@ -576,5 +576,9 @@ public class Level {
 
     public int getHeight() {
         return height;
+    }
+    
+    public double getDifficulty() {
+        return difficulty;
     }
 }

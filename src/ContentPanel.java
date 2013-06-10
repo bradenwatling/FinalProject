@@ -64,6 +64,11 @@ public class ContentPanel extends JPanel {
                             }
                         }
                     }
+                    
+                    if(enemies.size() <= 0) {
+                        //Win
+                        mainApplet.endLevel(true);
+                    }
                 }
 
                 for (int i = 0; i < projectiles.size(); i++) {

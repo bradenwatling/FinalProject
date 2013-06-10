@@ -36,7 +36,6 @@ public class MainApplet extends JApplet {
         }
         timer = new Timer();
 
-        // Difficulty between 1 and 4
         currentLevel = new Level(this, Level.MIN_WIDTH
                 + (int) (Math.random() * (Level.MAX_WIDTH - Level.MIN_WIDTH)),
                 Level.HEIGHT, difficulty);
@@ -46,6 +45,7 @@ public class MainApplet extends JApplet {
         content.setSize(levelWidth, levelHeight);
         content.setLocation((getWidth() - levelWidth) / 2, HUD.getHeight());
         content.setCurrentLevel(currentLevel);
+        HUD.setCurrentLevel(currentLevel);
 
         player.reset(currentLevel, currentLevel.getTile(0, 0));
 
@@ -79,8 +79,8 @@ public class MainApplet extends JApplet {
         //Restrict difficulty
         if (difficulty < 1.0) {
             difficulty = 1.0;
-        } else if (difficulty > 4.0) {
-            difficulty = 4.0;
+        } else if (difficulty > Level.MAX_DIFFICULTY) {
+            difficulty = Level.MAX_DIFFICULTY;
         }
     }
 
@@ -121,6 +121,7 @@ public class MainApplet extends JApplet {
                     + "gengar.png"));
             SimpleEnemy.simpleEnemyImage = ImageIO.read(new File(graphicsFolder + "bat.png"));
             SearchEnemy.searchEnemyImage = ImageIO.read(new File(graphicsFolder + "dog.png"));
+            HUDPanel.ratingImage = ImageIO.read(new File(graphicsFolder + "rating.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
