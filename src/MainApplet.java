@@ -10,57 +10,73 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 
 /**
- * The MainApplet class represent the Applet where the game occurs. It contains all of
- * the components associated with the game. It is also responsible for resetting the
- * Level when it must be reset.
- * 
+ * The MainApplet class represent the Applet where the game occurs. It contains
+ * all of the components associated with the game. It is also responsible for
+ * resetting the Level when it must be reset.
+ *
  * @author Braden Watling
  */
 public class MainApplet extends JApplet {
 
-    public static int FPS = 30, WIDTH = 1024, HEIGHT = 768;
+    public static int FPS = 30, APPLET_WIDTH = 1024, APPLET_HEIGHT = 768;
     public static double DIFFICULTY_INCREMENT = 0.5;
     private Timer timer;
     private HUDPanel HUD;
-    ContentPanel content;
-    Level currentLevel;
-    Player player;
-    ArrayList<Enemy> enemies;
-    ArrayList<Projectile> projectiles;
-    int score;
-    double difficulty;
+    private ContentPanel content;
+    private Level currentLevel;
+    private Player player;
+    private ArrayList<Enemy> enemies;
+    private ArrayList<Projectile> projectiles;
+    private int score;
+    private double difficulty;
 
     public void createNewLevel() {
         // Can't make a new level without a content panel and a player
         if (content == null || player == null) {
             return;
         }
-        projectiles.clear();
-        enemies.clear();
+        
+        //Empty projectiles and enemies. Only clear them because if they were set
+        //to new ArrayLists, any references to the old ArrayLists would be destroyed
+        if (projectiles != null) {
+            projectiles.clear();
+        }
+        if(enemies != null) {
+            enemies.clear();
+        }
 
         if (timer != null) {
+            //Cancel all tasks that are currently running
             timer.cancel();
         }
+        //Since the timer either does not exist or is cancelled, create a new one
         timer = new Timer();
 
+        //Generate a new Level
         currentLevel = new Level(this, Level.MIN_WIDTH
                 + (int) (Math.random() * (Level.MAX_WIDTH - Level.MIN_WIDTH)),
                 Level.HEIGHT, difficulty);
 
-        int levelWidth = currentLevel.getWidth() * Tile.TILE_WIDTH;
-        int levelHeight = currentLevel.getHeight() * Tile.TILE_HEIGHT;
+        int levelWidth = currentLevel.getWidthPixels();
+        int levelHeight = currentLevel.getHeightPixels();
         content.setSize(levelWidth, levelHeight);
         content.setLocation((getWidth() - levelWidth) / 2, HUD.getHeight());
         content.setCurrentLevel(currentLevel);
         HUD.setCurrentLevel(currentLevel);
 
-        player.reset(currentLevel, currentLevel.getTile(0, 0));
+        //Reset the player to its default conditions
+        //Make sure the Player can get to (0, 0) because that is where the Level
+        //generation algorithm starts, and almost all Tiles are connected to that Tile
+        player.reset(currentLevel, currentLevel.getRandomTile(currentLevel.getTile(0, 0)));
 
         int numSimple = 1;
         int numSearch = 1;
         int numRandom = difficulty < 3.0 ? 1 : 2;
         currentLevel.addEnemies(numSimple, numSearch, numRandom, enemies, player);
-        currentLevel.addPowerUps(2, 2, player);
+        
+        int numHealth = 2;
+        int numSpeed = 2;
+        currentLevel.addPowerUps(numHealth, numSpeed, player);
 
         //Let the user see the level before having to start right away
         content.stop();
@@ -72,11 +88,11 @@ public class MainApplet extends JApplet {
     }
 
     public void endLevel(boolean win) {
-    	content.doEndLevel(win);
+        content.doEndLevel(win);
         changeDifficulty(win);
         createNewLevel();
     }
-    
+
     private void changeDifficulty(boolean increase) {
         if (increase) {
             difficulty += DIFFICULTY_INCREMENT;
@@ -91,18 +107,18 @@ public class MainApplet extends JApplet {
             difficulty = Level.MAX_DIFFICULTY;
         }
     }
+    
+    class LevelGeneratorListener implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
+            createNewLevel();
+        }
+    }
 
     class LevelStarterListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
             content.start();
-        }
-    }
-
-    class LevelGeneratorListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent e) {
-            createNewLevel();
         }
     }
 
@@ -116,12 +132,12 @@ public class MainApplet extends JApplet {
     @Override
     public void init() {
         try {
-        	//Load all files for each separate class
+            //Load all files for each separate class
             String graphicsFolder = System.getProperty("user.dir")
                     + File.separatorChar + "src" + File.separatorChar
                     + "graphics" + File.separatorChar;
             System.out.println(graphicsFolder);
-            Tile.loadImage(ImageIO.read(new File(graphicsFolder + "wall.png")));
+            Tile.loadImage(ImageIO.read(new File(graphicsFolder + "wall.png")), ImageIO.read(new File(graphicsFolder + "empty.png")));
             Player.playerImage = ImageIO.read(new File(graphicsFolder
                     + "player.png"));
             Projectile.projectileImage = ImageIO.read(new File(graphicsFolder
@@ -133,12 +149,12 @@ public class MainApplet extends JApplet {
             HUDPanel.ratingImage = ImageIO.read(new File(graphicsFolder + "rating.png"));
             HealthPowerUp.healthPowerUpImage = ImageIO.read(new File(graphicsFolder + "health.png"));
             SpeedPowerUp.speedPowerUpImage = ImageIO.read(new File(graphicsFolder + "speed.png"));
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         //Set the size of the applet
-        setSize(WIDTH, HEIGHT);
+        setSize(APPLET_WIDTH, APPLET_HEIGHT);
 
         //Initialize the difficulty to 1.0, create empty enemies and projectile ArrayLists
         //Create the Player object
@@ -152,7 +168,7 @@ public class MainApplet extends JApplet {
     }
 
     /**
-     * This function is responsible for putting the GUI together
+     * This function is responsible for putting the GUI components on the applet
      */
     private void makeGUI() {
         JPanel contentPane = new JPanel(new BorderLayout(), true);
@@ -161,11 +177,11 @@ public class MainApplet extends JApplet {
         //Create these panels with references to the enemy, projectile, and player objects
         HUD = new HUDPanel(player, enemies);
         content = new ContentPanel(this, currentLevel, player, enemies, projectiles);
-        
+
         //Create a button to generate a level
         Button mapGenerator = new Button("Generate Map");
         mapGenerator.addActionListener(new LevelGeneratorListener());
-        
+
         //Create a button to start the level
         Button levelStarter = new Button("Start");
         levelStarter.addActionListener(new LevelStarterListener());

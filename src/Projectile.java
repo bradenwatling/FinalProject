@@ -75,8 +75,8 @@ public class Projectile extends Actor {
 
     @Override
     protected Area getLight() {
-        int x = position.getXPixels() + xMove + Tile.TILE_WIDTH / 2;
-        int y = position.getYPixels() + yMove + Tile.TILE_HEIGHT / 2;
+        int x = position.getXPixels() + xMove + Tile.WIDTH / 2;
+        int y = position.getYPixels() + yMove + Tile.HEIGHT / 2;
 
         return new Area(new Ellipse2D.Float(x - lightRadius / 2, y
                 - lightRadius / 2, lightRadius, lightRadius));

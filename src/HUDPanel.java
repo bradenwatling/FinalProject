@@ -13,6 +13,7 @@ public class HUDPanel extends JPanel {
      * http://shmector.com/medium/other/rating-stars_500x500.png
      */
     public static BufferedImage ratingImage;
+    public static final Color HEALTH_COLOR = new Color(0, 175, 0);
     Player player;
     Level currentLevel;
     ArrayList<Enemy> enemies;
@@ -111,10 +112,10 @@ public class HUDPanel extends JPanel {
             healthWidth = HEALTH_WIDTH;
         }
 
-        g.setColor(new Color(255, 0, 0));
+        g.setColor(Color.RED);
         g.fillRoundRect(x, y, HEALTH_WIDTH, HEALTH_HEIGHT, 10, 10);
 
-        g.setColor(new Color(0, 175, 0));
+        g.setColor(HEALTH_COLOR);
         g.fillRoundRect(x, y, healthWidth, HEALTH_HEIGHT, 10, 10);
 
         String healthString = health + "/" + Actor.MAX_HEALTH;

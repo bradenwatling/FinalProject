@@ -5,7 +5,8 @@ import java.awt.image.BufferedImage;
 public class Tile {
 
     public static BufferedImage tileImage;
-    public static int TILE_WIDTH, TILE_HEIGHT;
+    public static BufferedImage emptyImage;
+    public static int WIDTH, HEIGHT;
     int x, y;
     boolean isWall;
     //boolean isOccupied;
@@ -16,15 +17,31 @@ public class Tile {
         this.isWall = isWall;
     }
 
-    public static void loadImage(BufferedImage tileImage) {
+    public static void loadImage(BufferedImage tileImage, BufferedImage emptyImage) throws Exception {
         Tile.tileImage = tileImage;
-        Tile.TILE_WIDTH = tileImage.getWidth();
-        Tile.TILE_HEIGHT = tileImage.getHeight();
+        Tile.emptyImage = emptyImage;
+
+        int tileWidth = tileImage.getWidth(), tileHeight = tileImage.getHeight();
+
+        if (tileWidth == emptyImage.getWidth() && tileHeight == emptyImage.getHeight()) {
+            Tile.WIDTH = tileWidth;
+            Tile.HEIGHT = tileHeight;
+        } else {
+            throw new Exception("tileImage size does not match emptyImage size");
+        }
     }
 
+    /**
+     * This function is responsible for drawing a single Tile to the Graphics2D
+     * object.
+     *
+     * @param g The Graphics2D object representing the area to draw to
+     */
     public void draw(Graphics2D g) {
         if (isWall) {
-            g.drawImage(tileImage, x * tileImage.getWidth(), y * tileImage.getHeight(), null);
+            g.drawImage(tileImage, x * WIDTH, y * HEIGHT, null);
+        } else {
+            g.drawImage(emptyImage, x * WIDTH, y * HEIGHT, null);
         }
     }
 
@@ -34,10 +51,10 @@ public class Tile {
 
             return this.x == t.x && this.y == t.y;
         }
-        if(o instanceof Level.PathTile) {
+        if (o instanceof Level.PathTile) {
             Level.PathTile pt = (Level.PathTile) o;
-            
-            return this.equals(pt.current);
+
+            return this.equals(pt.getCurrent());
         }
 
         return false;
@@ -60,10 +77,10 @@ public class Tile {
     }
 
     public int getXPixels() {
-        return x * TILE_WIDTH;
+        return x * WIDTH;
     }
 
     public int getYPixels() {
-        return y * TILE_HEIGHT;
+        return y * HEIGHT;
     }
 }

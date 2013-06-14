@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -176,9 +177,11 @@ public class ContentPanel extends JPanel {
 				RenderingHints.VALUE_ANTIALIAS_ON);
 
 		if (showWinScreen) {
-
+                    g2d.setColor(Color.BLACK);
+                    g2d.fillRect(0, 0, currentLevel.getWidthPixels(), currentLevel.getHeightPixels());
 		} else if (showLoseScreen) {
-
+                    g2d.setColor(Color.RED);
+                    g2d.fillRect(0, 0, currentLevel.getWidthPixels(), currentLevel.getHeightPixels());
 		} else {
 
 			if (currentLevel == null || player == null) {
@@ -196,7 +199,7 @@ public class ContentPanel extends JPanel {
 				}
 			}
 
-			currentLevel.drawLight(g2d);
+			
 
 			player.draw(g2d);
 
@@ -213,22 +216,8 @@ public class ContentPanel extends JPanel {
 					projectile.draw(g2d);
 				}
 			}
-
-			g2d.setColor(Level.LIGHT_COLOR);
-			Area totalLitArea = new Area();
-
-			Area litArea = currentLevel.getLitArea();
-			Area tempLitArea = currentLevel.getTempLitArea();
-
-			if (litArea != null) {
-				totalLitArea.add(litArea);
-			}
-
-			if (tempLitArea != null) {
-				totalLitArea.add(tempLitArea);
-			}
-
-			g2d.fill(totalLitArea);
+                        
+                        currentLevel.drawLight(g2d);
 		}
 	}
 

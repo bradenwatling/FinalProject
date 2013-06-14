@@ -15,7 +15,7 @@ public abstract class Actor {
 	protected double speed;
 	private long speedBonusStartTime;
 	private long speedBonusDuration;
-	private int numFrames;
+	protected int numFrames;
 	private int FPS;
 	protected boolean animationComplete;
 	protected int lightRadius;
@@ -31,8 +31,8 @@ public abstract class Actor {
 		this.numFrames = numFrames;
 		this.FPS = FPS;
 		this.animationComplete = true;
-		this.lightRadius = (int) (Math.sqrt(Math.pow(Tile.TILE_WIDTH, 2)
-				+ Math.pow(Tile.TILE_HEIGHT, 2)) * 2);
+		this.lightRadius = (int) (Math.sqrt(Math.pow(Tile.WIDTH, 2)
+				+ Math.pow(Tile.HEIGHT, 2)) * 2);
 
 		// Default speed is 1.0, if it should be changed, it can be done in the
 		// subclass' constructor
@@ -139,8 +139,8 @@ public abstract class Actor {
 			int yDiff = target.getYPixels() - position.getYPixels();
 
 			// Tile.TILE_WIDTH / 8 is the standard speed of the player
-			int xSpeed = (int) (speed * Tile.TILE_WIDTH / 8);
-			int ySpeed = (int) (speed * Tile.TILE_HEIGHT / 8);
+			int xSpeed = (int) (speed * Tile.WIDTH / 8);
+			int ySpeed = (int) (speed * Tile.HEIGHT / 8);
 
 			long now = System.currentTimeMillis();
 
@@ -193,8 +193,8 @@ public abstract class Actor {
 	 */
 	protected void drawImage(Graphics2D g, BufferedImage actorImage, int x,
 			int y) {
-		g.drawImage(actorImage, x + Tile.TILE_WIDTH / 2 - actorImage.getWidth()
-				/ 2, y + Tile.TILE_HEIGHT / 2 - actorImage.getHeight() / 2,
+		g.drawImage(actorImage, x + Tile.WIDTH / 2 - actorImage.getWidth()
+				/ 2, y + Tile.HEIGHT / 2 - actorImage.getHeight() / 2,
 				null);
 	}
 
