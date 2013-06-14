@@ -17,7 +17,7 @@ public class Tile {
         this.isWall = isWall;
     }
 
-    public static void loadImage(BufferedImage tileImage, BufferedImage emptyImage) throws Exception {
+    public static void loadImages(BufferedImage tileImage, BufferedImage emptyImage) throws Exception {
         Tile.tileImage = tileImage;
         Tile.emptyImage = emptyImage;
 

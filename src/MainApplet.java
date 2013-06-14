@@ -2,7 +2,6 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Timer;
 import javax.imageio.ImageIO;
@@ -35,13 +34,13 @@ public class MainApplet extends JApplet {
         if (content == null || player == null) {
             return;
         }
-        
+
         //Empty projectiles and enemies. Only clear them because if they were set
         //to new ArrayLists, any references to the old ArrayLists would be destroyed
         if (projectiles != null) {
             projectiles.clear();
         }
-        if(enemies != null) {
+        if (enemies != null) {
             enemies.clear();
         }
 
@@ -52,28 +51,40 @@ public class MainApplet extends JApplet {
         //Since the timer either does not exist or is cancelled, create a new one
         timer = new Timer();
 
+        //Make the width of the level based on the difficulty - it gets bigger the
+        //closer it gets to Level.MAX_DIFFICULTY
+        int newLevelWidth = Level.MIN_WIDTH + (int) ((difficulty / Level.MAX_DIFFICULTY)
+                * (Level.MAX_WIDTH - Level.MIN_WIDTH));
+
         //Generate a new Level
-        currentLevel = new Level(this, Level.MIN_WIDTH
-                + (int) (Math.random() * (Level.MAX_WIDTH - Level.MIN_WIDTH)),
+        currentLevel = new Level(this, newLevelWidth,
                 Level.HEIGHT, difficulty);
 
+        //Get the Level size in pixels
         int levelWidth = currentLevel.getWidthPixels();
         int levelHeight = currentLevel.getHeightPixels();
+        //Setsize and center content
         content.setSize(levelWidth, levelHeight);
         content.setLocation((getWidth() - levelWidth) / 2, HUD.getHeight());
+        
+        //Update the panels with the currentLevel
         content.setCurrentLevel(currentLevel);
         HUD.setCurrentLevel(currentLevel);
 
-        //Reset the player to its default conditions
-        //Make sure the Player can get to (0, 0) because that is where the Level
-        //generation algorithm starts, and almost all Tiles are connected to that Tile
-        player.reset(currentLevel, currentLevel.getRandomTile(currentLevel.getTile(0, 0)));
+        /**
+         * Reset the player to its default conditions Make sure the Player can
+         * get to (0, 0) because that is where the Level generation algorithm
+         * starts, and almost all Tiles are connected to that Tile Specify a
+         * min. distance of 0 from (0, 0). This means the starting Tile is
+         * random.
+         */
+        player.reset(currentLevel, currentLevel.getRandomTile(currentLevel.getTile(0, 0), 0));
 
         int numSimple = 1;
         int numSearch = 1;
         int numRandom = difficulty < 3.0 ? 1 : 2;
         currentLevel.addEnemies(numSimple, numSearch, numRandom, enemies, player);
-        
+
         int numHealth = 2;
         int numSpeed = 2;
         currentLevel.addPowerUps(numHealth, numSpeed, player);
@@ -107,7 +118,7 @@ public class MainApplet extends JApplet {
             difficulty = Level.MAX_DIFFICULTY;
         }
     }
-    
+
     class LevelGeneratorListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
@@ -115,10 +126,10 @@ public class MainApplet extends JApplet {
         }
     }
 
-    class LevelStarterListener implements ActionListener {
+    class LevelPlayPauseListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
-            content.start();
+            content.toggleStartStop();
         }
     }
 
@@ -137,7 +148,7 @@ public class MainApplet extends JApplet {
                     + File.separatorChar + "src" + File.separatorChar
                     + "graphics" + File.separatorChar;
             System.out.println(graphicsFolder);
-            Tile.loadImage(ImageIO.read(new File(graphicsFolder + "wall.png")), ImageIO.read(new File(graphicsFolder + "empty.png")));
+            Tile.loadImages(ImageIO.read(new File(graphicsFolder + "wall.png")), ImageIO.read(new File(graphicsFolder + "empty.png")));
             Player.playerImage = ImageIO.read(new File(graphicsFolder
                     + "player.png"));
             Projectile.projectileImage = ImageIO.read(new File(graphicsFolder
@@ -183,8 +194,8 @@ public class MainApplet extends JApplet {
         mapGenerator.addActionListener(new LevelGeneratorListener());
 
         //Create a button to start the level
-        Button levelStarter = new Button("Start");
-        levelStarter.addActionListener(new LevelStarterListener());
+        Button levelToggler = new Button("Start / Pause");
+        levelToggler.addActionListener(new LevelPlayPauseListener());
 
         //Create a button to toggle the light
         Button lightSwitch = new Button("Toggle Light");
@@ -193,7 +204,7 @@ public class MainApplet extends JApplet {
         //Setup the HUD component
         HUD.setPreferredSize(new Dimension(this.getWidth(), 100));
         HUD.add(mapGenerator);
-        HUD.add(levelStarter);
+        HUD.add(levelToggler);
         HUD.add(lightSwitch);
 
         //Setup the ContentPanel component

@@ -12,51 +12,30 @@ public class Level {
     public static final int MIN_WIDTH = 20, MAX_WIDTH = 30, HEIGHT = 20;
     public static final Color LIGHT_COLOR = new Color(255, 255, 200, 150);
     public static boolean LIGHT_ENABLED = true;
-    public static final int MAX_DIFFICULTY = 4, MAX_ENEMIES = 4,
-            MAX_POWERUPS = 5;
+    /**
+     * This represents the maximum difficulty a map can have. This value should
+     * not be increased above 4. If it is, the map generation takes a much
+     * longer time to complete.
+     */
+    public static final int MAX_DIFFICULTY = 4;
+    public static final int MAX_ENEMIES = 4, MAX_POWERUPS = 5;
     public static final int ENEMY_STARTING_DISTANCE_FROM_PLAYER = 10;
+    /**
+     * This represents how many times slower the Level thread runs compared to
+     * the other threads. The Level thread must run slower because otherwise it
+     * uses a large amount of memory and causes the entire game to lag.
+     */
+    public static final int LEVEL_THREAD_DELAY_FACTOR = 1;
     MainApplet mainApplet;
     Tile[][] map;
     int width, height;
     double difficulty;
     ArrayList<PowerUp> powerUps;
-    Area litArea;
+    Area permLitArea;
     Area currentLightArea;
     Area tempLitArea;
     private Task currentTask;
     private BufferedImage mapImage;
-
-    class Task extends TimerTask {
-
-        /**
-         * Level needs to have its own thread so that it can handle lighting the
-         * screen as the player explores the level. It requires a thread so that
-         * it does not interrupt the other threads of the program.
-         */
-        @Override
-        public void run() {
-            long startTime = System.currentTimeMillis();
-            if (currentLightArea != null) {
-                Rectangle screen = new Rectangle(width * Tile.WIDTH,
-                        height * Tile.HEIGHT);
-                if (!litArea.contains(screen)) {
-                    if (!litArea.contains(currentLightArea.getBounds2D())) {
-                        litArea.add(currentLightArea);
-                        currentLightArea = null;
-                    }
-                } else {
-                    cancel();
-                    // Win
-                    mainApplet.endLevel(true);
-                }
-            }
-            //If it's taking too long for the lit area to be summed, print it
-            if (System.currentTimeMillis() - startTime > this
-                    .scheduledExecutionTime()) {
-                System.out.println("Level thread flooded");
-            }
-        }
-    }
 
     /**
      *
@@ -78,22 +57,15 @@ public class Level {
         this.difficulty = difficulty;
 
         powerUps = new ArrayList<PowerUp>();
+        permLitArea = new Area();
 
-        litArea = new Area();
+        generateMap();
 
-        do {
-            map = new Tile[width][height];
-            makeTile(0, 0);
-        } while (!mapSatisfactory());
-
-        fillEmpty();
-
-        mapImage = new BufferedImage(this.width * Tile.WIDTH, this.height
-                * Tile.HEIGHT, BufferedImage.TYPE_INT_RGB);
+        mapImage = new BufferedImage(getWidthPixels(), getHeightPixels(), BufferedImage.TYPE_INT_RGB);
         Graphics2D g = mapImage.createGraphics();
 
         g.setColor(Color.white);
-        g.fillRect(0, 0, width * Tile.WIDTH, height * Tile.HEIGHT);
+        g.fillRect(0, 0, getWidthPixels(), getHeightPixels());
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 if (map[x][y] != null) {
@@ -106,12 +78,62 @@ public class Level {
         }
     }
 
+    class Task extends TimerTask {
+
+        /**
+         * Level needs to have its own thread so that it can handle lighting the
+         * screen as the player explores the level. It requires a thread so that
+         * it does not interrupt the other threads of the program.
+         */
+        @Override
+        public void run() {
+            long startTime = System.currentTimeMillis();
+
+            //If we have a currentLightArea that we havent worked with
+            if (currentLightArea != null) {
+                Rectangle screen = new Rectangle(getWidthPixels(), getHeightPixels());
+                if (!permLitArea.contains(screen)) {
+                    if (!permLitArea.contains(currentLightArea.getBounds2D())) {
+                        permLitArea.add(currentLightArea);
+
+                        //Get rid of currentLightArea so we don't try to add it next iteration
+                        currentLightArea = null;
+                    }
+                } else {
+                    // Win
+                    mainApplet.endLevel(true);
+                    //Save memory by ending this thread now that the screen is lit up
+                    cancel();
+                }
+            }
+
+            //For debugging only
+            //If it's taking too long for the lit area to be summed, print it
+            if (System.currentTimeMillis() - startTime > this
+                    .scheduledExecutionTime()) {
+                System.out.println("Level thread flooded");
+            }
+        }
+    }
+
+    /**
+     * This method is used to
+     *
+     * @param timer
+     */
+    public void startThread(Timer timer) {
+        currentTask = new Task();
+        // Make the frequency of the light thread half that of the other threads
+        // to keep it from being laggy
+        timer.scheduleAtFixedRate(currentTask, 0, LEVEL_THREAD_DELAY_FACTOR * 1000 / MainApplet.FPS);
+    }
+
     public void addEnemies(int numSimple, int numSearch, int numRandom,
             ArrayList<Enemy> enemies, Player player) {
         int totalEnemies = numSimple + numSearch + numRandom;
 
         for (int i = 0; i < totalEnemies && i < MAX_ENEMIES; i++) {
-            Tile t = getRandomTile(player.getPosition());
+            Tile t = getRandomTile(player.getPosition(), ENEMY_STARTING_DISTANCE_FROM_PLAYER);
 
             Enemy newEnemy = null;
 
@@ -142,7 +164,7 @@ public class Level {
         int totalPowerUps = numHealth + numSpeed;
 
         for (int i = 0; i < totalPowerUps && i < MAX_POWERUPS; i++) {
-            Tile t = getRandomTile(player.getPosition());
+            Tile t = getRandomTile(player.getPosition(), ENEMY_STARTING_DISTANCE_FROM_PLAYER);
 
             PowerUp newPowerUp = null;
 
@@ -164,23 +186,31 @@ public class Level {
 
     /**
      * This function returns a random, non-wall Tile in the Level. If a
-     * targetPosition is specified, then the chosen Tile is guaranteed to have
-     * a path to the targetPosition.
-     * 
-     * @param targetPosition
-     * @return 
+     * targetPosition is specified, then the chosen Tile is guaranteed to have a
+     * path to the targetPosition.
+     *
+     * @param targetPosition If this parameter is not null, then the returned
+     * Tile is guaranteed to have a path to the this Tile.
+     * @param minDistance The minimum distance that the returned Tile must be
+     * from the targetPosition. If targetPosition is null, then this parameter
+     * has no effect. If set to 0, then the returned Tile has no restriction on
+     * distance from the target.
+     * @return A random, non-wall Tile in the level.
      */
-    public Tile getRandomTile(Tile targetPosition) {
+    public Tile getRandomTile(Tile targetPosition, int minDistance) {
+        //The tile to be returned
         Tile t = null;
+
+        //Keep looking for a Tile until we get one that isn't null and isn't a wall
         while (t == null || t.getIsWall()) {
+            //Choose a random Tile on the map
             t = getTile((int) (Math.random() * (width - 1)),
                     (int) (Math.random() * (height - 1)));
 
             if (targetPosition != null) {
                 ArrayList<Tile> path = getPath(null, t, targetPosition);
 
-                if (path == null
-                        || path.size() < ENEMY_STARTING_DISTANCE_FROM_PLAYER) {
+                if (path == null || path.size() < minDistance) {
                     t = null;
                 }
             }
@@ -188,11 +218,25 @@ public class Level {
         return t;
     }
 
-    public void startThread(Timer timer) {
-        currentTask = new Task();
-        // Make the frequency of the light thread half that of the other threads
-        // to keep it from being laggy
-        timer.scheduleAtFixedRate(currentTask, 0, 4 * 1000 / MainApplet.FPS);
+    /**
+     * This function is responsible for starting the generation of the map using
+     * the recursive method makeTile(int, int). It makes as many maps necessary
+     * until it generates a map that meets all of the conditions specified in
+     * mapSatisfactory().
+     */
+    private void generateMap() {
+        do {
+            //Make a new Tile[][]
+            map = new Tile[width][height];
+            //Do the recursive process and start in the top left corner
+            makeTile(0, 0);
+
+            //Don't stop until we're happy with the map
+        } while (!mapSatisfactory());
+
+        //When we have a map that we like, fill any Tiles that were missed with
+        //non-wall Tiles
+        fillEmpty();
     }
 
     private boolean makeTile(int x, int y) {
@@ -348,13 +392,6 @@ public class Level {
         if (mapImage != null) {
             g.drawImage(mapImage, 0, 0, null);
         }
-
-        /*
-         * for (int x = 0; x < width; x++) { for (int y = 0; y < height; y++) {
-         * if (map[x][y] != null) { map[x][y].draw(g); } else { g.drawRect(x *
-         * Tile.TILE_WIDTH, y * Tile.TILE_HEIGHT, Tile.TILE_WIDTH,
-         * Tile.TILE_HEIGHT); } } }
-         */
     }
 
     /**
@@ -370,16 +407,14 @@ public class Level {
          * transparent-shape-using-a-graphics-object-g
          */
         if (LIGHT_ENABLED) {
-
-            //An Area object representing the entire area of the Level
+            //An Area object the size of the entire Level
             //This represents the darkness
-            Area fillArea = new Area(new Rectangle2D.Float(0, 0, width
-                    * Tile.WIDTH, height * Tile.HEIGHT));
+            Area fillArea = new Area(new Rectangle2D.Float(0, 0, getWidthPixels(), getHeightPixels()));
 
             //Determine the permanent lit area + temp lit area
             Area totalLitArea = new Area();
-            if (litArea != null) {
-                totalLitArea.add(litArea);
+            if (permLitArea != null) {
+                totalLitArea.add(permLitArea);
             }
             if (tempLitArea != null) {
                 totalLitArea.add(tempLitArea);
@@ -398,26 +433,9 @@ public class Level {
         }
     }
 
-    public void setCurrentLightArea(Area currentLightArea) {
-        this.currentLightArea = currentLightArea;
-    }
-
-    public void setTempLitArea(Area tempLitArea) {
-        this.tempLitArea = tempLitArea;
-    }
-
-    public Area getTempLitArea() {
-        return tempLitArea;
-    }
-
-    public Area getLitArea() {
-        return litArea;
-    }
-
-    public Tile getTile(int x, int y) {
-        return map[x][y];
-    }
-
+    /**
+     * The PathTile class is an object used in the pathfinding algorithm.
+     */
     class PathTile {
 
         private PathTile parent;
@@ -463,6 +481,8 @@ public class Level {
             return false;
         }
     }
+    ArrayList<PathTile> openList;
+    ArrayList<PathTile> closedList;
 
     /**
      * This will be an implementation of A* path finding
@@ -473,19 +493,31 @@ public class Level {
      * @param target
      * @return
      */
-    public ArrayList<Tile> getPath(ArrayList<Tile> path, Tile current,
-            Tile target) {
+    public ArrayList<Tile> getPath(ArrayList<Tile> path, Tile current, Tile target) {
+        //Make a new path if it's null, re-use the old one if it's not
         if (path == null) {
             path = new ArrayList<Tile>();
         } else {
             path.clear();
         }
+        //If the current Tile is the same as the target Tile, then there is no path
         if (current.equals(target)) {
             return path;
         }
 
-        ArrayList<PathTile> openList = new ArrayList<PathTile>();
-        ArrayList<PathTile> closedList = new ArrayList<PathTile>();
+        //The only way having one openList/closedList is if only one thread ever
+        //calls this method at one time, which is true.
+        if (openList == null) {
+            openList = new ArrayList<PathTile>();
+        } else {
+            openList.clear();
+        }
+
+        if (closedList == null) {
+            closedList = new ArrayList<PathTile>();
+        } else {
+            closedList.clear();
+        }
 
         // Note that although these lists are of PathTiles, contains(Tile) can
         // be used because the definition for a PathTile == Tile is defined in
@@ -678,27 +710,75 @@ public class Level {
         return map[x][y + 1];
     }
 
+    public Tile getTile(int x, int y) {
+        return map[x][y];
+    }
+
+    /**
+     * This method returns the width of the Level in Tiles.
+     *
+     * @return The width of the Level in Tiles
+     */
     public int getWidth() {
         return width;
     }
 
+    /**
+     * This method returns the height of the Level in Tiles.
+     *
+     * @return The height of the Level in Tiles
+     */
     public int getHeight() {
         return height;
     }
 
+    /**
+     * This method returns the width of the Level in pixels.
+     *
+     * @return The width of the Level in pixels
+     */
     public int getWidthPixels() {
         return width * Tile.WIDTH;
     }
 
+    /**
+     * This method returns the height of the Level in pixels.
+     *
+     * @return The height of the Level in pixels
+     */
     public int getHeightPixels() {
         return height * Tile.HEIGHT;
     }
 
+    /**
+     * This method returns the difficulty of the Level.
+     *
+     * @return The difficulty of the Level
+     */
     public double getDifficulty() {
         return difficulty;
     }
 
+    /**
+     * This method returns the ArrayList<PowerUp> powerUps of the Level.
+     *
+     * @return The ArrayList<PowerUp> powerUps
+     */
     public ArrayList<PowerUp> getPowerUps() {
         return powerUps;
+    }
+
+    /**
+     * This method sets the value of currentLightArea, which is used in the
+     * Level thread (see Task class above) to add up currentLightArea over time.
+     *
+     * @param currentLightArea
+     */
+    public void setCurrentLightArea(Area currentLightArea) {
+        this.currentLightArea = currentLightArea;
+    }
+
+    public void setTempLitArea(Area tempLitArea) {
+        this.tempLitArea = tempLitArea;
     }
 }
