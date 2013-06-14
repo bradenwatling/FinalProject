@@ -29,7 +29,6 @@ public class ContentPanel extends JPanel {
 
         @Override
         public void run() {
-            long startTime = System.currentTimeMillis();
             if (requestStart) {
                 requestFocus();
 
@@ -123,11 +122,6 @@ public class ContentPanel extends JPanel {
             updateLevel();
 
             repaint();
-
-            if (System.currentTimeMillis() - startTime > this
-                    .scheduledExecutionTime()) {
-                System.out.println("ContentPanel thread flooded");
-            }
         }
     }
 

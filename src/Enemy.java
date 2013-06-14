@@ -12,50 +12,59 @@ public abstract class Enemy extends Actor {
      * http://www.spriters-resource.com/fullview/26795/
      * http://www.spriters-resource.com/fullview/26794/
      */
+    
+    public static int FPS = 15;
     /**
      * Keep a reference to the Player. This lets the Enemy know where the Player
      * is in order to track it.
      */
-    Player player;
+    protected Player player;
     /**
      * This Image is defined by each Enemy subclass, and stores each frame of
      * the Enemy's movement animation is the following order from top to bottom:
      * down, left, right, up. The number of frames in each row should be
      * identical to the number specified by numFrames (from Actor)
      */
-    BufferedImage spriteSheetImage;
+    protected BufferedImage spriteSheetImage;
     /**
      * This represents the position the Player was in the last time the Enemy was
      * updated. If this changes, then pathToPlayer should be updated. If it doesn't change,
      * however, then the path does not need to be recalculated.
      */
-    Tile lastPlayerPosition;
+    protected Tile lastPlayerPosition;
     /**
      * This is the shortest path to the Player, determined by getPath() in
      * Level. The first Tile in the path is on the top of the stack, while the
      * last Tile in the path is on the bottom of the stack.
      */
-    ArrayList<Tile> pathToPlayer;
+    protected ArrayList<Tile> pathToPlayer;
     /**
      * This represents the number of times out of 10 that the enemy will choose
      * a random direction rather than following the path.
      */
-    int randomChoice;
+    protected int randomChoice;
     /**
      * This represents the amount of health that the player loses when it
      * collides with this Enemy.
      */
-    int damage;
+    protected int damage;
     /**
      * This represents the amount of time that the Enemy should wait after
      * reaching its destination (emptying the pathToPlayer ArrayList).
      */
-    int retargetTime;
+    protected int retargetTime;
 
-    public Enemy(Tile position, Level currentLevel, Player player, int numFrames) {
-        super(position, currentLevel, numFrames, 15);
+    public Enemy(Tile position, Level currentLevel, Player player, int numFrames, BufferedImage spriteSheetImage, double speed, int damage, int health, int randomChoice, int retargetTime) {
+        super(position, currentLevel, numFrames, FPS);
 
         this.player = player;
+        
+        this.spriteSheetImage = spriteSheetImage;
+        this.speed = speed;
+        this.damage = damage;
+        this.health = health;
+        this.randomChoice = randomChoice;
+        this.retargetTime = retargetTime;
 
         pathToPlayer = new ArrayList<Tile>();
 

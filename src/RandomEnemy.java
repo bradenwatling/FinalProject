@@ -13,13 +13,6 @@ public class RandomEnemy extends Enemy {
     public static final int NUM_FRAMES = 2;
 
     public RandomEnemy(Tile position, Level currentLevel, Player player) {
-        super(position, currentLevel, player, NUM_FRAMES);
-
-        this.spriteSheetImage = randomEnemyImage;
-        this.speed = SPEED;
-        this.damage = DAMAGE;
-        this.health = HEALTH;
-        this.randomChoice = RANDOM_CHOICE;
-        this.retargetTime = RETARGET_TIME;
+        super(position, currentLevel, player, NUM_FRAMES, randomEnemyImage, SPEED, DAMAGE, HEALTH, RANDOM_CHOICE, RETARGET_TIME);
     }
 }

@@ -26,21 +26,32 @@ public class Level {
      * uses a large amount of memory and causes the entire game to lag.
      */
     public static final int LEVEL_THREAD_DELAY_FACTOR = 1;
-    MainApplet mainApplet;
-    Tile[][] map;
-    int width, height;
-    double difficulty;
-    ArrayList<PowerUp> powerUps;
-    Area permLitArea;
-    Area currentLightArea;
-    Area tempLitArea;
+    private MainApplet mainApplet;
+    private Tile[][] map;
+    private int width, height;
+    private double difficulty;
+    private ArrayList<PowerUp> powerUps;
+    private Area permLitArea;
+    private Area currentLightArea;
+    private Area tempLitArea;
     private Task currentTask;
     private BufferedImage mapImage;
+    /**
+     * openList and closedList are required as member variables because instantiating
+     * them on every iteration of getPath() hinders performance by a substantial
+     * amount. By making them member variables, a performance boost is given,
+     * but it introduces the restriction that the getPath() method can only ever
+     * be called by a single thread at any given time. This is fine though, because
+     * all pathfinding is done on the ContentPanel thread during the game, and it's
+     * done on the Level thread during Level initialization.
+     */
+    private ArrayList<PathTile> openList;
+    private ArrayList<PathTile> closedList;
 
     /**
      *
-     * @param width
-     * @param height
+     * @param width The width of the Level, in Tiles
+     * @param height The height of the Level, in Tiles
      * @param difficulty Difficulty of the level. Can range from
      * 1-MAX_DIFFICULTY
      */
@@ -87,8 +98,6 @@ public class Level {
          */
         @Override
         public void run() {
-            long startTime = System.currentTimeMillis();
-
             //If we have a currentLightArea that we havent worked with
             if (currentLightArea != null) {
                 Rectangle screen = new Rectangle(getWidthPixels(), getHeightPixels());
@@ -105,13 +114,6 @@ public class Level {
                     //Save memory by ending this thread now that the screen is lit up
                     cancel();
                 }
-            }
-
-            //For debugging only
-            //If it's taking too long for the lit area to be summed, print it
-            if (System.currentTimeMillis() - startTime > this
-                    .scheduledExecutionTime()) {
-                System.out.println("Level thread flooded");
             }
         }
     }
@@ -481,8 +483,6 @@ public class Level {
             return false;
         }
     }
-    ArrayList<PathTile> openList;
-    ArrayList<PathTile> closedList;
 
     /**
      * This will be an implementation of A* path finding
