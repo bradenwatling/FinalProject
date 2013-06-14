@@ -1,4 +1,3 @@
-
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -6,203 +5,263 @@ import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Logger;
 import javax.swing.JPanel;
 
 public class ContentPanel extends JPanel {
 
-    public static final int END_LEVEL_DELAY = 1000;
-    private MainApplet mainApplet;
-    private Level currentLevel;
-    private Player player;
-    private ArrayList<Enemy> enemies;
-    private ArrayList<Projectile> projectiles;
-    private Task currentTask;
-    private boolean requestStart;
+	public static final int END_LEVEL_DELAY = 1000;
+	private MainApplet mainApplet;
+	private Level currentLevel;
+	private Player player;
+	private ArrayList<Enemy> enemies;
+	private ArrayList<Projectile> projectiles;
+	private Task currentTask;
+	private boolean requestStart;
+	private boolean showWinScreen;
+	private boolean showLoseScreen;
 
-    class Task extends TimerTask {
+	class Task extends TimerTask {
 
-        @Override
-        public void run() {
-            if (requestStart) {
-                requestFocus();
+		@Override
+		public void run() {
+			long startTime = System.currentTimeMillis();
+			if (requestStart) {
+				requestFocus();
 
-                if (player != null) {
-                    player.update();
+				if (player != null) {
+					player.update();
 
-                    if (player.getHealth() <= 0) {
-                        mainApplet.endLevel(false);
-                    }
+					if (player.getHealth() <= 0) {
+						mainApplet.endLevel(false);
+					}
 
-                    for (int i = 0; i < enemies.size(); i++) {
-                        Enemy enemy = enemies.get(i);
-                        if (enemy != null) {
-                            enemy.update();
+					ArrayList<PowerUp> powerUps = currentLevel.getPowerUps();
+					for (int i = 0; i < powerUps.size(); i++) {
+						PowerUp powerUp = powerUps.get(i);
+						if (powerUp != null) {
+							if (powerUp.getPosition().equals(
+									player.getPosition())) {
+								powerUp.doPowerUp(player);
+							}
 
-                            Tile enemyPosition = enemy.getPosition();
-                            
-                            if (enemyPosition != null) {
-                                if (enemyPosition.equals(player.position)) {
-                                    player.doDamage(enemy.getDamageAmount());
-                                }
-                            }
+							if (powerUp.getDestroyed()) {
+								powerUps.remove(i--);
+							}
+						}
+					}
 
-                            for (int a = 0; a < projectiles.size(); a++) {
-                                Projectile projectile = projectiles.get(a);
+					for (int i = 0; i < enemies.size(); i++) {
+						Enemy enemy = enemies.get(i);
+						if (enemy != null) {
+							enemy.update();
 
-                                if (projectile.getPosition().equals(enemyPosition) || (projectile.getTarget() != null && projectile.getTarget().equals(enemyPosition))) {
-                                    //If the projectile hasn't already damaged an enemy
-                                    if (!projectile.getDestroyProjectile()) {
-                                        enemy.doDamage(Projectile.DAMAGE_TO_ENEMY);
-                                        projectile.destroyProjectile();
-                                    }
-                                }
-                            }
+							Tile enemyPosition = enemy.getPosition();
 
-                            if (enemy.isDead()) {
-                                enemies.remove(enemy);
-                            }
-                        }
-                    }
-                    
-                    if(enemies.size() <= 0) {
-                        //Win
-                        mainApplet.endLevel(true);
-                    }
-                }
+							if (enemyPosition != null) {
+								if (enemyPosition.equals(player.position)) {
+									player.doDamage(enemy.getDamageAmount());
+								}
+							}
 
-                for (int i = 0; i < projectiles.size(); i++) {
-                    Projectile projectile = projectiles.get(i);
-                    if (projectile != null) {
-                        projectile.update();
+							for (int a = 0; a < powerUps.size(); a++) {
+								PowerUp powerUp = powerUps.get(a);
+								if (powerUp != null) {
+									if (powerUp.getPosition().equals(
+											enemy.getPosition())) {
+										powerUp.doPowerUp(enemy);
+									}
+								}
+							}
 
-                        if (projectile.getDestroyProjectile()) {
-                            projectiles.remove(i--);
-                            continue;
-                        }
-                    }
-                }
-            }
+							for (int a = 0; a < projectiles.size(); a++) {
+								Projectile projectile = projectiles.get(a);
 
-            updateLevel();
+								if (projectile.getPosition().equals(
+										enemyPosition)
+										|| (projectile.getTarget() != null && projectile
+												.getTarget().equals(
+														enemyPosition))) {
+									// If the projectile hasn't already damaged
+									// an enemy
+									if (!projectile.getDestroyProjectile()) {
+										enemy.doDamage(Projectile.DAMAGE_TO_ENEMY);
+										projectile.destroyProjectile();
+									}
+								}
+							}
 
-            repaint();
-        }
-    }
+							if (enemy.isDead()) {
+								enemies.remove(enemy);
+							}
+						}
+					}
 
-    public ContentPanel(MainApplet mainApplet, Level currentLevel, Player player,
-            ArrayList<Enemy> enemies, ArrayList<Projectile> projectiles) {
-        this.mainApplet = mainApplet;
-        this.currentLevel = currentLevel;
-        this.player = player;
-        this.enemies = enemies;
-        this.projectiles = projectiles;
+					if (enemies.size() <= 0) {
+						// Win
+						mainApplet.endLevel(true);
+					}
+				}
 
-        addKeyListener(player);
-    }
+				for (int i = 0; i < projectiles.size(); i++) {
+					Projectile projectile = projectiles.get(i);
+					if (projectile != null) {
+						projectile.update();
 
-    public void doEndLevel() {
-        try {
-            Thread.sleep(END_LEVEL_DELAY);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(ContentPanel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-    }
+						if (projectile.getDestroyProjectile()) {
+							projectiles.remove(i--);
+							continue;
+						}
+					}
+				}
+			}
 
-    public void startThread(Timer timer) {
-        if (currentTask != null) {
-            currentTask.cancel();
-        }
+			updateLevel();
 
-        currentTask = new Task();
-        timer.scheduleAtFixedRate(currentTask, 0, 1000 / MainApplet.FPS);
-    }
+			repaint();
+			
+			if (System.currentTimeMillis() - startTime > this
+					.scheduledExecutionTime()) {
+				System.out.println("ContentPanel thread flooded");
+			}
+		}
+	}
 
-    public void start() {
-        requestStart = true;
-    }
+	public ContentPanel(MainApplet mainApplet, Level currentLevel,
+			Player player, ArrayList<Enemy> enemies,
+			ArrayList<Projectile> projectiles) {
+		this.mainApplet = mainApplet;
+		this.currentLevel = currentLevel;
+		this.player = player;
+		this.enemies = enemies;
+		this.projectiles = projectiles;
 
-    public void stop() {
-        requestStart = false;
-    }
+		addKeyListener(player);
+	}
 
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
+	public void doEndLevel(boolean win) {
+		try {
+			showWinScreen = win;
+			showLoseScreen = !win;
+			repaint();
+			Thread.sleep(END_LEVEL_DELAY);
+		} catch (Exception e) {
+		}
+		showWinScreen = false;
+		showLoseScreen = false;
+	}
 
-        Graphics2D g2d = ((Graphics2D) g);
+	public void startThread(Timer timer) {
+		if (currentTask != null) {
+			currentTask.cancel();
+		}
 
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
+		currentTask = new Task();
+		timer.scheduleAtFixedRate(currentTask, 0, 1000 / MainApplet.FPS);
+	}
 
-        if (currentLevel == null || player == null) {
-            return;
-        }
+	public void start() {
+		requestStart = true;
+	}
 
-        currentLevel.draw(g2d);
+	public void stop() {
+		requestStart = false;
+	}
 
-        player.draw(g2d);
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
 
-        for (int i = 0; i < enemies.size(); i++) {
-            Enemy enemy = enemies.get(i);
-            if (enemy != null) {
-                enemy.draw(g2d);
-            }
-        }
+		Graphics2D g2d = ((Graphics2D) g);
 
-        for (int i = 0; i < projectiles.size(); i++) {
-            Projectile projectile = projectiles.get(i);
-            if (projectile != null) {
-                projectile.draw(g2d);
-            }
-        }
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+				RenderingHints.VALUE_ANTIALIAS_ON);
 
-        g2d.setColor(Level.LIGHT_COLOR);
-        Area totalLitArea = new Area();
+		if (showWinScreen) {
 
-        Area litArea = currentLevel.getLitArea();
-        Area tempLitArea = currentLevel.getTempLitArea();
+		} else if (showLoseScreen) {
 
-        if (litArea != null) {
-            totalLitArea.add(litArea);
-        }
+		} else {
 
-        if (tempLitArea != null) {
-            totalLitArea.add(tempLitArea);
-        }
+			if (currentLevel == null || player == null) {
+				return;
+			}
 
-        g2d.fill(totalLitArea);
-    }
+			currentLevel.draw(g2d);
 
-    public void updateLevel() {
-        if (currentLevel == null || player == null) {
-            return;
-        }
+			ArrayList<PowerUp> powerUps = currentLevel.getPowerUps();
 
-        Area currentLightArea = new Area();
-        Area tempLightArea = new Area();
+			for (int i = 0; i < powerUps.size(); i++) {
+				PowerUp powerUp = powerUps.get(i);
+				if (powerUp != null) {
+					powerUp.draw(g2d);
+				}
+			}
 
-        if (player != null) {
-            currentLightArea.add(player.getLight());
-        }
+			currentLevel.drawLight(g2d);
 
-        for (int i = 0; i < enemies.size(); i++) {
-            Enemy enemy = enemies.get(i);
-            if (enemy != null) {
-                tempLightArea.add(enemy.getLight());
-            }
-        }
-        for (int i = 0; i < projectiles.size(); i++) {
-            Projectile projectile = projectiles.get(i);
-            if (projectile != null) {
-                tempLightArea.add(projectile.getLight());
-            }
-        }
+			player.draw(g2d);
 
-        currentLevel.setCurrentLightArea(currentLightArea);
-        currentLevel.setTempLitArea(tempLightArea);
-    }
+			for (int i = 0; i < enemies.size(); i++) {
+				Enemy enemy = enemies.get(i);
+				if (enemy != null) {
+					enemy.draw(g2d);
+				}
+			}
 
-    void setCurrentLevel(Level currentLevel) {
-        this.currentLevel = currentLevel;
-    }
+			for (int i = 0; i < projectiles.size(); i++) {
+				Projectile projectile = projectiles.get(i);
+				if (projectile != null) {
+					projectile.draw(g2d);
+				}
+			}
+
+			g2d.setColor(Level.LIGHT_COLOR);
+			Area totalLitArea = new Area();
+
+			Area litArea = currentLevel.getLitArea();
+			Area tempLitArea = currentLevel.getTempLitArea();
+
+			if (litArea != null) {
+				totalLitArea.add(litArea);
+			}
+
+			if (tempLitArea != null) {
+				totalLitArea.add(tempLitArea);
+			}
+
+			g2d.fill(totalLitArea);
+		}
+	}
+
+	public void updateLevel() {
+		if (currentLevel == null || player == null) {
+			return;
+		}
+
+		Area currentLightArea = new Area();
+		Area tempLightArea = new Area();
+
+		if (player != null) {
+			currentLightArea.add(player.getLight());
+		}
+
+		for (int i = 0; i < enemies.size(); i++) {
+			Enemy enemy = enemies.get(i);
+			if (enemy != null) {
+				tempLightArea.add(enemy.getLight());
+			}
+		}
+		for (int i = 0; i < projectiles.size(); i++) {
+			Projectile projectile = projectiles.get(i);
+			if (projectile != null) {
+				tempLightArea.add(projectile.getLight());
+			}
+		}
+
+		currentLevel.setCurrentLightArea(currentLightArea);
+		currentLevel.setTempLitArea(tempLightArea);
+	}
+
+	void setCurrentLevel(Level currentLevel) {
+		this.currentLevel = currentLevel;
+	}
 }

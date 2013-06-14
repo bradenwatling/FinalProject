@@ -125,8 +125,7 @@ public class Player extends Actor implements KeyListener {
 
     public void reset(Level currentLevel, Tile position) {
         super.reset(currentLevel, position);
-        
-        health = 1000;
+
         keys.clear();
     }
 
