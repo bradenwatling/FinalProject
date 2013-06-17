@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Timer;
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.LineBorder;
 
 /**
  * The MainApplet class represent the Applet where the game occurs. It contains
@@ -17,7 +16,7 @@ import javax.swing.border.LineBorder;
  */
 public class MainApplet extends JApplet {
 
-    public static int FPS = 30, APPLET_WIDTH = 1024, APPLET_HEIGHT = 768;
+    public static int FPS = 30, APPLET_WIDTH = 1024, APPLET_HEIGHT = 768, HUD_HEIGHT = 100;
     public static double DIFFICULTY_INCREMENT = 0.5;
     private Timer timer;
     private HUDPanel HUD;
@@ -60,15 +59,8 @@ public class MainApplet extends JApplet {
         currentLevel = new Level(this, newLevelWidth,
                 Level.HEIGHT, difficulty);
 
-        //Get the Level size in pixels
-        int levelWidth = currentLevel.getWidthPixels();
-        int levelHeight = currentLevel.getHeightPixels();
-        //Setsize and center content
-        content.setSize(levelWidth, levelHeight);
-        content.setLocation((getWidth() - levelWidth) / 2, HUD.getHeight());
-        
         //Update the panels with the currentLevel
-        content.setCurrentLevel(currentLevel);
+        content.changeLevel(currentLevel);
         HUD.setCurrentLevel(currentLevel);
 
         /**
@@ -80,22 +72,16 @@ public class MainApplet extends JApplet {
          */
         player.reset(currentLevel, currentLevel.getRandomTile(currentLevel.getTile(0, 0), 0));
 
-        int numSimple = 1;
-        int numSearch = 1;
-        int numRandom = difficulty < 3.0 ? 1 : 2;
-        currentLevel.addEnemies(numSimple, numSearch, numRandom, enemies, player);
-
-        int numHealth = 2;
-        int numSpeed = 2;
-        currentLevel.addPowerUps(numHealth, numSpeed, player);
+        //The Level determines how many Enemies and PowerUps to make based on its difficulty
+        currentLevel.addEnemies(enemies, player);
+        currentLevel.addPowerUps(player.getPosition());
 
         //Let the user see the level before having to start right away
-        content.stop();
+        content.setRunState(false);
 
         //Start threads
         currentLevel.startThread(timer);
         content.startThread(timer);
-        HUD.startThread(timer);
     }
 
     public void endLevel(boolean win) {
@@ -119,14 +105,7 @@ public class MainApplet extends JApplet {
         }
     }
 
-    class LevelGeneratorListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent e) {
-            createNewLevel();
-        }
-    }
-
-    class LevelPlayPauseListener implements ActionListener {
+    class PlayPauseListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
             content.toggleStartStop();
@@ -137,6 +116,18 @@ public class MainApplet extends JApplet {
 
         public void actionPerformed(ActionEvent e) {
             Level.LIGHT_ENABLED = !Level.LIGHT_ENABLED;
+        }
+    }
+
+    class InstructionsListener implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
+            boolean oldContentRunState = content.getRunState();
+            content.setRunState(false);
+
+            HUDPanel.showInstructions();
+
+            content.setRunState(oldContentRunState);
         }
     }
 
@@ -172,10 +163,11 @@ public class MainApplet extends JApplet {
         difficulty = 1.0;
         enemies = new ArrayList<Enemy>();
         projectiles = new ArrayList<Projectile>();
-        player = new Player(null, null, projectiles, 100);
+        player = new Player(null, null, projectiles);
 
         //Construct the GUI components of the applet
         makeGUI();
+        createNewLevel();
     }
 
     /**
@@ -187,30 +179,27 @@ public class MainApplet extends JApplet {
 
         //Create these panels with references to the enemy, projectile, and player objects
         HUD = new HUDPanel(player, enemies);
-        content = new ContentPanel(this, currentLevel, player, enemies, projectiles);
-
-        //Create a button to generate a level
-        Button mapGenerator = new Button("Generate Map");
-        mapGenerator.addActionListener(new LevelGeneratorListener());
+        content = new ContentPanel(this, HUD, currentLevel, player, enemies, projectiles);
 
         //Create a button to start the level
-        Button levelToggler = new Button("Start / Pause");
-        levelToggler.addActionListener(new LevelPlayPauseListener());
+        Button playPauseButton = new Button("Play/Pause");
+        playPauseButton.addActionListener(new PlayPauseListener());
 
         //Create a button to toggle the light
         Button lightSwitch = new Button("Toggle Light");
         lightSwitch.addActionListener(new LightSwitchListener());
 
+        Button instructionsButton = new Button("Instructions");
+        instructionsButton.addActionListener(new InstructionsListener());
+
         //Setup the HUD component
-        HUD.setPreferredSize(new Dimension(this.getWidth(), 100));
-        HUD.add(mapGenerator);
-        HUD.add(levelToggler);
+        HUD.setPreferredSize(new Dimension(this.getWidth(), HUD_HEIGHT));
+        HUD.add(playPauseButton);
         HUD.add(lightSwitch);
+        HUD.add(instructionsButton);
 
         //Setup the ContentPanel component
-        content.setBorder(new LineBorder(Color.BLACK));
-        content.setSize(new Dimension(this.getWidth(), this.getHeight() - 100));
-        content.setAlignmentY(Component.CENTER_ALIGNMENT);
+        content.setPreferredSize(new Dimension(this.getWidth(), this.getHeight() - HUD_HEIGHT));
 
         //Add the HUD and ContentPanel to the applet
         contentPane.add(HUD, BorderLayout.NORTH);

@@ -18,14 +18,27 @@ public class Level {
      * longer time to complete.
      */
     public static final int MAX_DIFFICULTY = 4;
-    public static final int MAX_ENEMIES = 4, MAX_POWERUPS = 5;
-    public static final int ENEMY_STARTING_DISTANCE_FROM_PLAYER = 10;
+    /**
+     * This represents the difficulty at which another enemy is added and more
+     * PowerUps are added
+     */
+    public static final double HARD_DIFFICULTY = 3.0;
+    /**
+     * These represent the maximum number of enemies and power ups that can
+     * exist in a Level at any one time.
+     */
+    public static final int MAX_ENEMIES = 4, MAX_POWER_UPS = 5;
+    /**
+     * This represents the minimum starting distance that Enemies and PowerUps
+     * must be from the Player.
+     */
+    public static final int MIN_STARTING_DISTANCE_FROM_PLAYER = 10;
     /**
      * This represents how many times slower the Level thread runs compared to
      * the other threads. The Level thread must run slower because otherwise it
      * uses a large amount of memory and causes the entire game to lag.
      */
-    public static final int LEVEL_THREAD_DELAY_FACTOR = 1;
+    public static final int LEVEL_THREAD_DELAY_FACTOR = 2;
     private MainApplet mainApplet;
     private Tile[][] map;
     private int width, height;
@@ -37,13 +50,14 @@ public class Level {
     private Task currentTask;
     private BufferedImage mapImage;
     /**
-     * openList and closedList are required as member variables because instantiating
-     * them on every iteration of getPath() hinders performance by a substantial
-     * amount. By making them member variables, a performance boost is given,
-     * but it introduces the restriction that the getPath() method can only ever
-     * be called by a single thread at any given time. This is fine though, because
-     * all pathfinding is done on the ContentPanel thread during the game, and it's
-     * done on the Level thread during Level initialization.
+     * openList and closedList are required as member variables because
+     * instantiating them on every iteration of getPath() hinders performance by
+     * a substantial amount. By making them member variables, a performance
+     * boost is given, but it introduces the restriction that the getPath()
+     * method can only ever be called by a single thread at any given time. This
+     * is fine though, because all pathfinding is done on the ContentPanel
+     * thread during the game, and it's done on the Level thread during Level
+     * initialization.
      */
     private ArrayList<PathTile> openList;
     private ArrayList<PathTile> closedList;
@@ -130,12 +144,23 @@ public class Level {
         timer.scheduleAtFixedRate(currentTask, 0, LEVEL_THREAD_DELAY_FACTOR * 1000 / MainApplet.FPS);
     }
 
-    public void addEnemies(int numSimple, int numSearch, int numRandom,
-            ArrayList<Enemy> enemies, Player player) {
+    /**
+     *
+     * @param enemies The ArrayList<Enemy> that the created Enemies will be
+     * added to.
+     * @param player The position of the Player as well as a reference to the
+     * Player is needed so that a path is guaranteed to the Player when the
+     * Enemy is created.
+     */
+    public void addEnemies(ArrayList<Enemy> enemies, Player player) {
+        int numSimple = 1;
+        int numSearch = 1;
+        int numRandom = difficulty < HARD_DIFFICULTY ? 1 : 2;
+
         int totalEnemies = numSimple + numSearch + numRandom;
 
         for (int i = 0; i < totalEnemies && i < MAX_ENEMIES; i++) {
-            Tile t = getRandomTile(player.getPosition(), ENEMY_STARTING_DISTANCE_FROM_PLAYER);
+            Tile t = getRandomTile(player.getPosition(), MIN_STARTING_DISTANCE_FROM_PLAYER);
 
             Enemy newEnemy = null;
 
@@ -158,15 +183,25 @@ public class Level {
 
     /**
      *
-     * @param numHealth
-     * @param player The position of the Player must be known so that a path
-     * exists to the PowerUp
+     * @param playerPosition The position of the Player must be known so that a
+     * path is guaranteed to each PowerUp
      */
-    public void addPowerUps(int numHealth, int numSpeed, Player player) {
+    public void addPowerUps(Tile playerPosition) {
+        //Only make one of each type of PowerUp if difficulty < 3.0, otherwise
+        //make a random number of each
+        boolean multiplePowerUps = difficulty >= HARD_DIFFICULTY;
+        int numHealth = 1;
+        int numSpeed = 1;
+
+        if (multiplePowerUps) {
+            numHealth += (int) (Math.random() * 2);
+            numSpeed += (int) (Math.random() * 2);
+        }
+
         int totalPowerUps = numHealth + numSpeed;
 
-        for (int i = 0; i < totalPowerUps && i < MAX_POWERUPS; i++) {
-            Tile t = getRandomTile(player.getPosition(), ENEMY_STARTING_DISTANCE_FROM_PLAYER);
+        for (int i = 0; i < totalPowerUps && i < MAX_POWER_UPS; i++) {
+            Tile t = getRandomTile(playerPosition, MIN_STARTING_DISTANCE_FROM_PLAYER);
 
             PowerUp newPowerUp = null;
 
@@ -209,10 +244,14 @@ public class Level {
             t = getTile((int) (Math.random() * (width - 1)),
                     (int) (Math.random() * (height - 1)));
 
-            if (targetPosition != null) {
+            //If we have a position and Tile to guarantee a path to
+            if (targetPosition != null && t != null) {
+                //Attempt the path
                 ArrayList<Tile> path = getPath(null, t, targetPosition);
 
+                //If we didn't get a good enough path
                 if (path == null || path.size() < minDistance) {
+                    //Don't use this Tile
                     t = null;
                 }
             }
@@ -508,14 +547,18 @@ public class Level {
         //The only way having one openList/closedList is if only one thread ever
         //calls this method at one time, which is true.
         if (openList == null) {
+            //If openList is not initialized, initialize it.
             openList = new ArrayList<PathTile>();
         } else {
+            //Otherwise, just clear it
             openList.clear();
         }
 
         if (closedList == null) {
+            //If closedList is not initialized, initialize it.
             closedList = new ArrayList<PathTile>();
         } else {
+            //Otherwise, just clear it
             closedList.clear();
         }
 
@@ -710,6 +753,13 @@ public class Level {
         return map[x][y + 1];
     }
 
+    /**
+     * This method returns a reference to the Tile at position (x, y) in the Level.
+     * 
+     * @param x The x-coordinate of the desired Tile.
+     * @param y The y-coordinate of the desired Tile.
+     * @return A reference to the desired Tile.
+     */
     public Tile getTile(int x, int y) {
         return map[x][y];
     }
