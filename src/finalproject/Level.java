@@ -1,3 +1,4 @@
+package finalproject;
 
 import java.awt.*;
 import java.awt.geom.Area;
@@ -505,7 +506,8 @@ public class Level {
      * that don't meet this criteria, and running the generation algorithm over
      * again, the problem is eliminated.
      *
-     * @return
+     * @return Whether or not this map is satisfactory, meaning that no Tiles
+     * are surrounded only by null Tiles
      */
     private boolean mapSatisfactory() {
         //For each Tile in the map

@@ -1,3 +1,5 @@
+package finalproject;
+
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -222,7 +224,7 @@ public class HUDPanel extends JPanel {
     /**
      * Sets the current Level of the HUDPanel.
      *
-     * @param currentLevel The new Level for the Panel
+     * @param newLevel The new Level for the Panel
      */
     public void setCurrentLevel(Level newLevel) {
         this.currentLevel = newLevel;

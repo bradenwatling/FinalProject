@@ -1,3 +1,5 @@
+package finalproject;
+
 
 import java.awt.Color;
 import java.awt.FontMetrics;
@@ -22,7 +24,7 @@ public class ContentPanel extends JPanel {
     /**
      * This is the delay between one level ending and the next starting.
      */
-    public static final int END_LEVEL_DELAY = 1000;
+    public static final int END_LEVEL_DELAY = 1500;
     /**
      * A reference to the Applet.
      */

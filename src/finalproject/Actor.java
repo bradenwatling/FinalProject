@@ -1,3 +1,4 @@
+package finalproject;
 
 import java.awt.Graphics2D;
 import java.awt.geom.Area;
@@ -167,11 +168,6 @@ public abstract class Actor {
      * This method draws the actor's image in the center of each tile
      *
      * @param g The Graphics2D object to draw the image to
-     * @param actorImage The current frame of the Actor's image
-     * @param x The x position, in pixels, of the top left hand corner of where
-     * to draw the image.
-     * @param y The y position, in pixels, of the top left hand corner of where
-     * to draw the image.
      */
     protected void drawImage(Graphics2D g) {
         if (position != null) {
@@ -325,7 +321,7 @@ public abstract class Actor {
      * of movement.
      *
      * @param image The Actor's sprite sheet
-     * @return
+     * @return The current frame of the Actor's sprite sheet.
      */
     protected BufferedImage getCurrentFrame(BufferedImage image) {
         int frameWidth = image.getWidth() / numFrames;

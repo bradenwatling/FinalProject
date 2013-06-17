@@ -1,3 +1,5 @@
+package finalproject;
+
 
 import java.awt.image.BufferedImage;
 
