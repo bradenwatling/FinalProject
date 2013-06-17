@@ -10,6 +10,8 @@ import java.util.ArrayList;
  * This is the Player class. It represents the user of the game, and the main
  * character of the game.
  *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public class Player extends Actor implements KeyListener {

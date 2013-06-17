@@ -5,6 +5,8 @@ import java.awt.image.BufferedImage;
  * This class is a PowerUp that gives the Player a speed boost when the Player
  * interacts with it.
  *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public class SpeedPowerUp extends PowerUp {
@@ -20,7 +22,7 @@ public class SpeedPowerUp extends PowerUp {
 
     /**
      * Create a new SpeedPowerUp on the specified Tile.
-     * 
+     *
      * @param position The Tile to place the SpeedPowerUp on.
      */
     public SpeedPowerUp(Tile position) {

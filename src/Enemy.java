@@ -10,6 +10,8 @@ import java.util.ArrayList;
  * while still providing the subclasses with ways to customize the tracking
  * logic.
  *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public abstract class Enemy extends Actor {
@@ -76,7 +78,7 @@ public abstract class Enemy extends Actor {
 
         //Enemies have a light radius half that of the default.
         lightRadius /= 2;
-        
+
         pathToPlayer = new ArrayList<Tile>();
 
         // Dont go to a default frame when the projectile stops

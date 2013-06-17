@@ -6,6 +6,8 @@ import java.awt.image.BufferedImage;
  * Player. The RandomEnemy, however, has a certain probability of choosing a
  * random direction to move in, rather than sticking to the path to the Player.
  *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public class RandomEnemy extends Enemy {

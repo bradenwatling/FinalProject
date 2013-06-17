@@ -10,6 +10,8 @@ import java.awt.image.BufferedImage;
  * colliding with a wall, or until it is destroyed externally by colliding with
  * an Enemy.
  *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public class Projectile extends Actor {

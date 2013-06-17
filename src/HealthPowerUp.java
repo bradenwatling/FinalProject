@@ -2,8 +2,11 @@
 import java.awt.image.BufferedImage;
 
 /**
- * This class is a PowerUp that heals the Player when the Player interacts with it.
- * 
+ * This class is a PowerUp that heals the Player when the Player interacts with
+ * it.
+ *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public class HealthPowerUp extends PowerUp {
@@ -20,7 +23,7 @@ public class HealthPowerUp extends PowerUp {
 
     /**
      * Create a new HealthPowerUp based on the following parameters.
-     * 
+     *
      * @param position The position Tile of the HealthPowerUp.
      * @param healAmount The amount of health that the HealthPowerUp heals.
      */

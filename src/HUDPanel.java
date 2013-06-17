@@ -9,6 +9,8 @@ import javax.swing.*;
  * current difficulty of the Level, as well as health bars for the Player and
  * each Enemy.
  *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public class HUDPanel extends JPanel {

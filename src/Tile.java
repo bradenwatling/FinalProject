@@ -6,6 +6,8 @@ import java.awt.image.BufferedImage;
  * This class represents a position in a Level that is either walkable, or is a
  * wall.
  *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public class Tile {
@@ -83,14 +85,16 @@ public class Tile {
     }
 
     /**
-     * This method overrides the definition of equals(Object o) defined in Object.
-     * The purpose of this method is to allow tileOne.equals(tileTwo) to return
-     * true if the x- and y-coordinates are equal. The same functionality is added
-     * for Level.PathTiles, so that an ArrayList<Level.PathTile> can call contains(Tile t).
-     * 
-     * @param o The object to compare to. Can be either a Tile or a Level.PathTile
-     * @return Whether or not the x- and y- coordinates of this Tile are equal to
-     * those of the given Tile or Level.PathTile.
+     * This method overrides the definition of equals(Object o) defined in
+     * Object. The purpose of this method is to allow tileOne.equals(tileTwo) to
+     * return true if the x- and y-coordinates are equal. The same functionality
+     * is added for Level.PathTiles, so that an ArrayList<Level.PathTile> can
+     * call contains(Tile t).
+     *
+     * @param o The object to compare to. Can be either a Tile or a
+     * Level.PathTile
+     * @return Whether or not the x- and y- coordinates of this Tile are equal
+     * to those of the given Tile or Level.PathTile.
      */
     public boolean equals(Object o) {
         if (o instanceof Tile) {

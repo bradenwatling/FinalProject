@@ -1,5 +1,6 @@
 
 import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -11,6 +12,8 @@ import javax.swing.JPanel;
 
 /**
  * This class represents the JPanel on which the bulk of the game takes place.
+ *
+ * June 17, 2013
  *
  * @author Braden Watling
  */
@@ -62,6 +65,11 @@ public class ContentPanel extends JPanel {
      * Whether or not the Level lose screen should be displayed.
      */
     private boolean showLevelLoseScreen;
+    /**
+     * Whether or not the screen that is shown when the game is won should be
+     * shown.
+     */
+    private boolean showGameWinScreen;
 
     /**
      * This class represents the update thread for the ContentPanel.
@@ -240,6 +248,14 @@ public class ContentPanel extends JPanel {
     }
 
     /**
+     * This method is responsible for showing the game win screen.
+     */
+    public void winGame() {
+        showGameWinScreen = true;
+        repaint();
+    }
+
+    /**
      * This method cancels any existing tasks associated with the ContentPanel
      * and starts a new one at the proper FPS on the designated Timer.
      *
@@ -319,14 +335,27 @@ public class ContentPanel extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
 
-        if (showLevelWinScreen) {
+        if (showGameWinScreen) {
             //If the win screen must be shown
             g2d.setColor(Color.BLACK);
             g2d.fillRect(0, 0, currentLevel.getWidthPixels(), currentLevel.getHeightPixels());
+
+            g2d.setColor(Color.WHITE);
+            drawCenterScreen(g2d, "CONGRATULATIONS! YOU WIN!");
+        } else if (showLevelWinScreen) {
+            //If the win screen must be shown
+            g2d.setColor(Color.BLACK);
+            g2d.fillRect(0, 0, currentLevel.getWidthPixels(), currentLevel.getHeightPixels());
+
+            g2d.setColor(Color.WHITE);
+            drawCenterScreen(g2d, "Congratulations, you've advanced to the next level.");
         } else if (showLevelLoseScreen) {
             //If the lose screen must be shown
             g2d.setColor(Color.RED);
             g2d.fillRect(0, 0, currentLevel.getWidthPixels(), currentLevel.getHeightPixels());
+
+            g2d.setColor(Color.BLACK);
+            drawCenterScreen(g2d, "You have died. Going back one level.");
         } else {
             //Make sure currentLevel and player are not null
             if (currentLevel == null || player == null) {
@@ -367,6 +396,13 @@ public class ContentPanel extends JPanel {
             //Draw the darkness and the light area on top of everything else
             currentLevel.drawLight(g2d);
         }
+    }
+
+    private void drawCenterScreen(Graphics2D g, String text) {
+        FontMetrics metrics = g.getFontMetrics(g.getFont());
+
+        int stringWidth = metrics.stringWidth(text);
+        g.drawString(text, currentLevel.getWidthPixels() / 2 - stringWidth / 2, currentLevel.getHeightPixels() / 2);
     }
 
     /**

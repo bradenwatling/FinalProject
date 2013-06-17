@@ -5,6 +5,8 @@ import java.awt.image.BufferedImage;
  * This class is a subclass of Enemy that simply follows a direct path to the
  * Player, but moves much slower than the Player.
  *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public class SimpleEnemy extends Enemy {

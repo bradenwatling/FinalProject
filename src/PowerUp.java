@@ -5,10 +5,11 @@ import java.awt.image.BufferedImage;
 /**
  * This class represents a PowerUp that gives an Actor a bonus that is defined
  * by a subclass of this class.
- * 
+ *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
-
 public abstract class PowerUp {
 
     /**
@@ -26,7 +27,7 @@ public abstract class PowerUp {
 
     /**
      * Create a new PowerUp based on the following parameters.
-     * 
+     *
      * @param position The position Tile of the PowerUp.
      * @param powerUpImage The image to display for the PowerUp.
      */
@@ -38,7 +39,7 @@ public abstract class PowerUp {
 
     /**
      * This method is responsible for drawing the PowerUp to the screen.
-     * 
+     *
      * @param g The Graphics2D object to draw to.
      */
     public void draw(Graphics2D g) {
@@ -56,6 +57,7 @@ public abstract class PowerUp {
 
     /**
      * Gets the position of the PowerUp
+     *
      * @return The position Tile of the PowerUp.
      */
     public Tile getPosition() {
@@ -64,7 +66,7 @@ public abstract class PowerUp {
 
     /**
      * Determines whether or not the PowerUp is destroyed.
-     * 
+     *
      * @return Whether or not the PowerUp is destroyed.
      */
     public boolean getDestroyed() {

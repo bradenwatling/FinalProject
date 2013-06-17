@@ -8,6 +8,8 @@ import java.awt.image.BufferedImage;
  * the animation of the object's sprite sheet, and creates smooth motion between
  * Tiles in the Level.
  *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public abstract class Actor {
@@ -106,7 +108,7 @@ public abstract class Actor {
 
     /**
      * Create a new Actor based on these parameters.
-     * 
+     *
      * @param position The starting Tile of the Actor
      * @param currentLevel The Level that the Actor is currently in
      * @param spriteSheet The BufferedImage that represents this Actor's sprite

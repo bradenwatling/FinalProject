@@ -2,10 +2,12 @@
 import java.awt.image.BufferedImage;
 
 /**
- * This class is a subclass of Enemy that moves quite a bit faster than the Player.
- * The SearchEnemy chooses a path to the Player, follows it, waits for a certain
- * amount of time, and then picks another path to the Player.
- * 
+ * This class is a subclass of Enemy that moves quite a bit faster than the
+ * Player. The SearchEnemy chooses a path to the Player, follows it, waits for a
+ * certain amount of time, and then picks another path to the Player.
+ *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public class SearchEnemy extends Enemy {
@@ -43,11 +45,11 @@ public class SearchEnemy extends Enemy {
 
     /**
      * This method overrides Enemy's updatePath() method. It provides a separate
-     * method of moving towards the Player. The SearchEnemy only allows the 
-     * path to player to be updated when the path has been completely executed.
-     * This means that the SearchEnemy chooses its path, follows it, waits the
+     * method of moving towards the Player. The SearchEnemy only allows the path
+     * to player to be updated when the path has been completely executed. This
+     * means that the SearchEnemy chooses its path, follows it, waits the
      * RETARGET_TIME, and then picks another path.
-     * 
+     *
      * @return Whether or not the path to the Player should be updated.
      */
     protected boolean updatePath() {

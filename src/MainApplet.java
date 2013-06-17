@@ -12,22 +12,69 @@ import javax.swing.*;
  * all of the components associated with the game. It is also responsible for
  * resetting the Level when it must be reset.
  *
+ * June 17, 2013
+ *
  * @author Braden Watling
  */
 public class MainApplet extends JApplet {
 
-    public static int FPS = 30, APPLET_WIDTH = 1024, APPLET_HEIGHT = 768, HUD_HEIGHT = 100;
-    public static double DIFFICULTY_INCREMENT = 0.5;
+    /**
+     * This represents whether debugging mode is enabled or not. By enabling
+     * debugging mode, buttons are displayed to generate a new Level at any
+     * time, as well as toggle the lights on and off in the Level.
+     */
+    public static final boolean DEBUGGING_MODE = false;
+    /**
+     * These represent constants relating the the Applet and different
+     * Components.
+     */
+    public static final int FPS = 30, APPLET_WIDTH = 1024, APPLET_HEIGHT = 768, HUD_HEIGHT = 100;
+    /**
+     * This represents the amount that the difficulty increases when a Level is
+     * completed.
+     */
+    public static final double DIFFICULTY_INCREMENT = 0.5;
+    /**
+     * This represents the Timer object used to schedule the Level and Content
+     * threads.
+     */
     private Timer timer;
+    /**
+     * This represents the heads up display JPanel.
+     */
     private HUDPanel HUD;
+    /**
+     * This represents the JPanel containing the actual game.
+     */
     private ContentPanel content;
+    /**
+     * This represents the Level that is current being played.
+     */
     private Level currentLevel;
+    /**
+     * This is the Player object, which represents the user.
+     */
     private Player player;
+    /**
+     * This is the ArrayList of Enemy objects in the Level.
+     */
     private ArrayList<Enemy> enemies;
+    /**
+     * This is the ArrayList of Projectile objects in the Level.
+     */
     private ArrayList<Projectile> projectiles;
-    private int score;
+    /**
+     * This represents the difficulty of the Level. This is used to store
+     * difficulties between one Level ending and the next starting. Difficulty
+     * is increased or decreased by DIFFICULTY_INCREMENT when a Level ends.
+     */
     private double difficulty;
 
+    /**
+     * This method is responsible for creating a new Level and resetting all
+     * aspects of the game. This includes resetting the Player, the Enemy
+     * ArrayList, the Projectile ArrayList etc.
+     */
     public void createNewLevel() {
         // Can't make a new level without a content panel and a player
         if (content == null || player == null) {
@@ -84,27 +131,57 @@ public class MainApplet extends JApplet {
         content.startThread(timer);
     }
 
+    /**
+     * This method is responsible for ending the Level, increasing or decreasing
+     * the difficulty, and moving onto the next Level.
+     *
+     * @param win Whether or not the previous Level was won.
+     */
     public void endLevel(boolean win) {
+        //Show the end Level screen
         content.doEndLevel(win);
-        changeDifficulty(win);
-        createNewLevel();
+        //Update the difficulty, and if the game has not been won
+        if (!changeDifficulty(win)) {
+            //Create a new Level
+            createNewLevel();
+        } else {
+            //Otherwise display the win screen
+            content.winGame();
+        }
+
     }
 
-    private void changeDifficulty(boolean increase) {
-        if (increase) {
+    /**
+     * This method is responsible for increasing and decreasing the difficulty
+     * of the Level based on whether the previous Level was won or lost. This
+     * method is also responsible for determining if the game has been won or
+     * not.
+     *
+     * @param won Whether or not the previous Level was won.
+     * @return Whether or not the game has been won.
+     */
+    private boolean changeDifficulty(boolean won) {
+        if (won) {
             difficulty += DIFFICULTY_INCREMENT;
         } else {
             difficulty -= DIFFICULTY_INCREMENT;
         }
 
         //Restrict difficulty
-        if (difficulty < 1.0) {
+        if (difficulty > Level.MAX_DIFFICULTY) {
+            //The game is won
+            return true;
+        } else if (difficulty < 1.0) {
             difficulty = 1.0;
-        } else if (difficulty > Level.MAX_DIFFICULTY) {
-            difficulty = Level.MAX_DIFFICULTY;
         }
+
+        //The game has not yet been won
+        return false;
     }
 
+    /**
+     * This class represents what happens when the play/pause button is pressed.
+     */
     class PlayPauseListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
@@ -112,6 +189,23 @@ public class MainApplet extends JApplet {
         }
     }
 
+    /**
+     * This class represents what happens when the generate button is pressed.
+     * Note that this is only used for debugging. To enable debugging, set
+     * DEBUGGING_MODE to true.
+     */
+    class GenerateListener implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
+            createNewLevel();
+        }
+    }
+
+    /**
+     * This class represents what happens when the light switch button is
+     * pressed. Note that this is only used for debugging. To enable debugging,
+     * set DEBUGGING_MODE to true.
+     */
     class LightSwitchListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
@@ -119,26 +213,40 @@ public class MainApplet extends JApplet {
         }
     }
 
+    /**
+     * This class represents what happens when the instructions button is
+     * pressed. It should pause the game (if its not already paused), show the
+     * instructions dialog, and when that closes, should return the game to its
+     * previous running state.
+     */
     class InstructionsListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
+            //Record the old state of the game (paused or running
             boolean oldContentRunState = content.getRunState();
             content.setRunState(false);
 
+            //Show the instructions pop up
             HUDPanel.showInstructions();
 
+            //Return to the state it was in
             content.setRunState(oldContentRunState);
         }
     }
 
     @Override
+    /**
+     * This method is responsible for initializing the Applet. This includes
+     * loading all images for the game, and setting up the different Components
+     * of the Applet.
+     */
     public void init() {
         try {
             //Load all files for each separate class
             String graphicsFolder = System.getProperty("user.dir")
                     + File.separatorChar + "src" + File.separatorChar
                     + "graphics" + File.separatorChar;
-            System.out.println(graphicsFolder);
+            //System.out.println(graphicsFolder);
             Tile.loadImages(ImageIO.read(new File(graphicsFolder + "wall.png")), ImageIO.read(new File(graphicsFolder + "empty.png")));
             Player.playerImage = ImageIO.read(new File(graphicsFolder
                     + "player.png"));
@@ -185,16 +293,29 @@ public class MainApplet extends JApplet {
         Button playPauseButton = new Button("Play/Pause");
         playPauseButton.addActionListener(new PlayPauseListener());
 
+        //Create a button to generate a new map
+        Button generateButton = new Button("Generate Level");
+        generateButton.addActionListener(new GenerateListener());
+
         //Create a button to toggle the light
         Button lightSwitch = new Button("Toggle Light");
         lightSwitch.addActionListener(new LightSwitchListener());
+
+        //The generate button and light switch buttons are for debugging only.
+        //Uncomment these lines to use their functionality.
+        if (!DEBUGGING_MODE) {
+            generateButton.setVisible(false);
+            lightSwitch.setVisible(false);
+        }
 
         Button instructionsButton = new Button("Instructions");
         instructionsButton.addActionListener(new InstructionsListener());
 
         //Setup the HUD component
+        //Uncomment the generateButton and lightSwitch button 
         HUD.setPreferredSize(new Dimension(this.getWidth(), HUD_HEIGHT));
         HUD.add(playPauseButton);
+        HUD.add(generateButton);
         HUD.add(lightSwitch);
         HUD.add(instructionsButton);
 
